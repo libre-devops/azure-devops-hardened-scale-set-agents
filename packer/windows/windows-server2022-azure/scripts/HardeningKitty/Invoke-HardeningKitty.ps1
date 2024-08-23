@@ -1,0 +1,1 @@
+Invoke-HardeningKitty -Mode HailMary -Log -Report -FileFindingList .\lists\$Env:HARDENING_KITTY_FILES_TO_RUN

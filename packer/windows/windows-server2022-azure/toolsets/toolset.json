@@ -1,0 +1,63 @@
+{
+    "powershellModules": [
+        {
+            "name": "Az"
+        },
+        {
+            "name": "AzureAD"
+        },
+
+        {
+            "name": "Pester"
+        },
+        {
+            "name": "PowerShellGet"
+        },
+        {
+            "name": "PSWindowsUpdate"
+        },
+        {
+            "name": "Microsoft.Graph"
+        },
+        {
+            "name": "CISDSC"
+        }
+    ],
+    "choco": {
+        "common_packages": [
+            {
+                "name": "7zip.install"
+            },
+            {
+                "name": "git.install"
+            },
+            {
+                "name": "jq"
+            },
+            {
+                "name": "powershell-core"
+            },
+            {
+                "name": "azure-cli"
+            },
+            {
+                "name": "openssl"
+            },
+            {
+                "name": "terraform"
+            },
+            {
+                "name": "packer"
+            },
+            {
+                "name": "gh"
+            },
+            {
+                "name": "msys2"
+            },
+            {
+                "name": "sysinternals"
+            }
+        ]
+    }
+}

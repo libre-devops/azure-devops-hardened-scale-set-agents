@@ -1,0 +1,115 @@
+name: 'Windows Server 2022 - Packer Build'
+
+# Allow run manually
+on:
+  workflow_dispatch:
+    inputs:
+      packer_code_location:
+        type: string
+        description: What working directory should be passed to the script
+        default: "packer/windows/windows-server2022-azure"
+      packer_version:
+        type: string
+        description: 'What version of packer to attempt to use?'
+        default: default
+      run_packer_init:
+        type: boolean
+        description: 'Whether Packer init should be ran'
+        default: true
+      run_packer_build:
+        type: boolean
+        description: 'Whether Packer build should be ran'
+        default: true
+      run_packer_validate:
+        type: boolean
+        description: 'Whether Packer validate should be ran'
+        default: true
+      packer_file_name:
+        type: string
+        description: 'Packer file name'
+        default: 'packer.pkr.hcl'
+      attempt_az_login:
+        type: boolean
+        description: 'Whether to attempt logging into Azure to edit your nsg'
+        default: true
+      add_client_to_nsg:
+        type: boolean
+        description: 'Whether to add your outbound client IP to an NSG'
+        default: true
+      add_client_to_keyvault:
+        type: boolean
+        description: 'Whether to add your outbound client IP to an keyvault'
+        default: true
+
+jobs:
+  run-script:
+    name: 'Run Script'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pkenv
+        id: install-pkenv
+        shell: pwsh
+        run: |
+          brew tap kwilczynski/homebrew-pkenv
+          brew install pkenv
+          $PackerJsonUrl = "https://api.releases.hashicorp.com/v1/releases/packer"
+          $JsonContent = Invoke-RestMethod -Uri $PackerJsonUrl 
+          
+          # Filter out pre-releases and sort by version number
+          $LatestVersion = $JsonContent | Where-Object { $_.is_prerelease -eq $false } | Sort-Object { [Version] $_.version } -Descending | Select-Object -First 1
+          
+          # Output the latest version number
+          $PackerLatestVersion = $LatestVersion.version
+
+          # Use pkenv to install and use the latest Packer version
+          pkenv install $PackerLatestVersion
+          pkenv use $PackerLatestVersion
+
+      - name: Install PowerShell modules
+        id: install-powershell-modules
+        shell: pwsh
+        run: |
+          pwsh -Command Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted ; `
+          pwsh -Command Install-Module -Name Az.Accounts -Force -AllowClobber -Scope CurrentUser -Repository PSGallery ; `
+          pwsh -Command Install-Module -Name Az.Network -Force -AllowClobber -Scope CurrentUser -Repository PSGallery ; `
+          pwsh -Command Install-Module -Name Az.Storage -Force -AllowClobber -Scope CurrentUser -Repository PSGallery ; `
+          pwsh -Command Install-Module -Name Az.Keyvault -Force -AllowClobber -Scope CurrentUser -Repository PSGallery 
+
+      - name: Build
+        id: run-script
+        shell: pwsh
+        run: |
+          
+          .\Run-AzPacker.ps1 `
+            -WorkingDirectory "$(Get-Location)/${{ inputs.packer_code_location }}" `
+            -RunPackerInit ${{ inputs.run_packer_init }} `
+            -AttemptLoginForNsg ${{ inputs.attempt_login_for_nsg }} `
+            -RunPackerValidate ${{ inputs.run_packer_validate }} `
+            -AddCurrentClientToNsg ${{ inputs.add_client_to_nsg }} `
+            -NsgResourceId ${{ vars.nsgid }} `
+            -AddCurrentClientToKeyvault ${{ inputs.add_client_to_nsg }} `
+            -KeyvaultResourceId ${{ vars.keyvaultid }}
+        env:
+          PKR_VAR_ARM_CLIENT_ID: ${{ secrets.SpokeSvpApplicationId }}
+          PKR_VAR_ARM_CLIENT_SECRET: ${{ secrets.SpokeSvpClientSecret }}
+          PKR_VAR_ARM_SUBSCRIPTION_ID: ${{ secrets.SpokeSubscriptionId }}
+          PKR_VAR_ARM_TENANT_ID: ${{ secrets.SpokeSvpTenantId }}
+          ARM_CLIENT_ID: ${{ secrets.SpokeSvpApplicationId }}
+          ARM_CLIENT_SECRET: ${{ secrets.SpokeSvpClientSecret }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.SpokeSubscriptionId }}
+          ARM_TENANT_ID: ${{ secrets.SpokeSvpTenantId }}

@@ -1,0 +1,153 @@
+name: 'Windows Server 2022 - Terraform Plan - Scale Set'
+
+# Allow run manually
+on:
+  workflow_dispatch:
+    inputs:
+      terraform_code_location:
+        type: string
+        description: What working directory should be passed to the script
+        default: "terraform/1-scale-set"
+      run_trivy:
+        type: boolean
+        description: 'Whether trivy should be ran'
+        default: true
+      run_checkov:
+        type: boolean
+        description: 'Whether checkov should be ran'
+        default: false
+      run_terraform_compliance:
+        type: boolean
+        description: 'Whether terraform-compliance should be ran'
+        default: false
+      terraform_compliance_policy_files:
+        type: string
+        description: 'The location of terraform-compliance files if used'
+        default: "git:https://github.com/libre-devops/azure-naming-convention.git//?ref=main"
+      enable_debug_mode:
+        type: boolean
+        description: 'Whether debug mode should be enable for within the script'
+        default: false
+      delete_plan_files:
+        type: boolean
+        description: 'Whether the tfplan files should be auto deleted'
+        default: true
+      terraform_version:
+        type: string
+        description: 'What version should tenv attempt to use?'
+        default: latest
+      terraform_state_name:
+        type: string
+        description: 'Name of the Terraform state file'
+        default: 'lbd-uks-prd-azdo-scale-sets.terraform.tfstate'
+
+jobs:
+  run-script:
+    name: 'Run Script'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install tenv
+        id: install-tenv
+        shell: pwsh
+        run: |
+          $tfenvUri = "https://api.github.com/repos/tofuutils/tenv/releases/latest"
+          $tenvLatestVersion = (Invoke-RestMethod -Uri $tfenvUri).tag_name
+
+          $tenvDownloadUrl = "https://github.com/tofuutils/tenv/releases/latest/download/tenv_${tenvLatestVersion}_amd64.deb"
+          $tenvFilePath = "./tenv_${tenvLatestVersion}_amd64.deb"
+          Invoke-WebRequest -Uri $tenvDownloadUrl -OutFile $tenvFilePath
+
+          sudo dpkg -i $tenvFilePath
+
+      - name: Install trivy
+        id: install-trivy
+        shell: pwsh
+        run: |
+          brew install trivy
+
+      - name: Install checkov
+        id: install-checkov
+        shell: pwsh
+        run: |
+          pip3 install checkov
+
+      - name: Install terraform-compliance
+        id: install-terraform-compliance
+        shell: pwsh
+        run: |
+          pip3 install terraform-compliance
+
+      - name: Install PowerShell modules
+        id: install-powershell-modules
+        shell: pwsh
+        run: |
+          pwsh -Command Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted ; `
+          pwsh -Command Install-Module -Name Az.Accounts -Force -AllowClobber -Scope CurrentUser -Repository PSGallery ; `
+          pwsh -Command Install-Module -Name Az.Storage -Force -AllowClobber -Scope CurrentUser -Repository PSGallery 
+
+      - name: Build
+        id: run-script
+        shell: pwsh
+        run: |
+          function Convert-ToBoolean($value)
+            {
+                $valueLower = $value.ToLower()
+                if ($valueLower -eq "true")
+                {
+                    return $true
+                }
+                elseif ($valueLower -eq "false")
+                {
+                    return $false
+                }
+                else
+                {
+                    throw "[$( $MyInvocation.MyCommand.Name )] Error: Invalid value - $value. Exiting."
+                    exit 1
+                }
+            }
+          
+          $DebugMode = Convert-ToBoolean ${{ inputs.enable_debug_mode }}
+          
+          .\Run-AzTerraform.ps1 `
+            -TerraformCodeLocation ${{ inputs.terraform_code_location }} `
+            -RunTerraformInit true `
+            -RunTerraformPlan true `
+            -RunTerraformPlanDestroy false `
+            -RunTerraformApply false `
+            -RunTerraformDestroy false `
+            -DebugMode $DebugMode `
+            -RunTrivy ${{ inputs.run_trivy }} `
+            -RunCheckov ${{ inputs.run_checkov }} `
+            -RunTerraformCompliance ${{ inputs.run_terraform_compliance }} `
+            -TerraformCompliancePolicyFiles ${{ inputs.terraform_compliance_policy_files }} `
+            -DeletePlanFiles ${{ inputs.delete_plan_files }} `
+            -TerraformVersion ${{ inputs.terraform_version }} `
+            -BackendStorageSubscriptionId ${{ secrets.SpokeSubscriptionId }} `
+            -BackendStorageAccountRgName ${{ secrets.SpokeMgmtRgName }} `
+            -BackendStorageAccountName ${{ secrets.SpokeSaName }} `
+            -BackendStorageAccountBlobContainerName ${{ secrets.SpokeSaBlobContainerName }} `
+            -BackendStorageAccountBlobStatefileName ${{ inputs.terraform_state_name }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.SpokeSvpApplicationId }}
+          ARM_CLIENT_SECRET: ${{ secrets.SpokeSvpClientSecret }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.SpokeSubscriptionId }}
+          ARM_TENANT_ID: ${{ secrets.SpokeSvpTenantId }}
+          ARM_USE_AZUREAD: true
+          AZDO_ORG_SERVICE_URL: ${{ secrets.AzdoOrgServiceUrl }}
+

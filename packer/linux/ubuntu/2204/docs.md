@@ -1,15 +1,3 @@
-# azdo-agent-scale-sets
-A repository containing all you need to get setup for Azure DevOps Agents in Virtual Machine Scale Sets
-
-This work is based heavily on the [Virtual Environments](https://github.com/actions/virtual-environments) work completed by Microsoft, but with the want to strip some of the items out of it.
-
-Once the image and scale set have been created, complete the follow instructions - https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/scale-set-agents?view=azure-devops
-
-## Gotchas
-
-- Your scale set needs to be in the same region as your Azure DevOps instance for this to work
-- Your service principal used to access the agents requires Owner (or maybe just contributor is enough)
-- The Azure DevOps agents are installed automatically when you set up the pool
 ## Requirements
 
 No requirements.
