@@ -116,12 +116,6 @@ module "key_vault" {
       rg_name  = module.rg.rg_name
       location = module.rg.rg_location
       tags     = module.rg.rg_tags
-      contact = [
-        {
-          name  = "LibreDevOps"
-          email = "info@libredevops.org"
-        }
-      ]
       enabled_for_deployment          = true
       enabled_for_disk_encryption     = true
       enabled_for_template_deployment = true
