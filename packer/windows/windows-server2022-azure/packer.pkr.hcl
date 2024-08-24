@@ -229,6 +229,7 @@ build {
 
   provisioner "powershell" {
     environment_vars = [
+      "HARDENING_KITTY_PATH=${path.root}/scripts/HardeningKitty",
       "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv",
       "IMAGE_OS=${local.image_os}",
       "BUILD_WITH_GUI=${local.deploy_gui}"
