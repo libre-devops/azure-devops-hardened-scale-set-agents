@@ -219,7 +219,7 @@ build {
     execution_policy = "unrestricted"
     scripts          = [
       "${path.root}/scripts/Installers/Configure-Antivirus.ps1",
-      "${path.root}/scripts/Installers/Install-PowerShellModules.ps1",
+#       "${path.root}/scripts/Installers/Install-PowerShellModules.ps1",
       "${path.root}/scripts/Installers/Install-Choco.ps1",
       "${path.root}/scripts/Installers/Install-HardeningKitty.ps1",
       "${path.root}/scripts/Installers/Initialize-VM.ps1",
