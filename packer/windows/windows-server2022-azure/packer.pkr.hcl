@@ -223,7 +223,7 @@ build {
   }
 
   provisioner "file" {
-    source      = "scripts/HardeningKitty"
+    source      = "scripts/HardeningKitty/*"
     destination = "C:\\HardeningKitty"
   }
 
@@ -267,6 +267,7 @@ build {
       "Get-ChildItem -Path $env:HARDENING_KITTY_PATH\\logs | Format-List"
     ]
   }
+
 
 
   provisioner "windows-restart" {
