@@ -52,7 +52,7 @@ variable "deploy_gui" {
 
 locals {
   deploy_gui            = var.deploy_gui
-  image_version = formatdate("YYYYMM.DD.HHmmss", timestamp())
+  image_version         = formatdate("YYYYMM.DD.HHmmss", timestamp())
   image_os              = "windowsserver2022azure"
   short                 = "lbd"
   env                   = "prd"
@@ -72,7 +72,6 @@ locals {
 
 ###### Packer Variables ######
 
-// Uses the packer env inbuilt function - https://www.packer.io/docs/templates/hcl_templates/functions/contextual/env
 variable "client_id" {
   type        = string
   description = "The client id, passed as a PKR_VAR"
@@ -100,7 +99,6 @@ variable "tenant_id" {
 
 ####################################################################################################################
 
-// Begins Packer build Section
 source "azure-arm" "build" {
 
   client_id                 = var.client_id
@@ -129,11 +127,9 @@ source "azure-arm" "build" {
   virtual_network_subnet_name         = local.subnet_name
   private_virtual_network_with_public_ip = local.use_public_ip
 
-  // Name of Image which is created by Terraform
   managed_image_name                = local.image_name
   managed_image_resource_group_name = local.gallery_rg_name
 
-  // Shared image gallery is created by terraform in the pre-req step, as is the resource group.
   shared_image_gallery_destination {
     gallery_name   = local.gallery_name
     image_name     = local.image_name
@@ -172,7 +168,6 @@ build {
     destination = "${var.image_folder}/HardeningKitty"
     source      = "${path.root}/scripts/HardeningKitty"
   }
-
 
   provisioner "file" {
     destination = "${var.image_folder}\\toolset.json"
@@ -228,19 +223,17 @@ build {
     ]
   }
 
+  // HardeningKitty execution
   provisioner "powershell" {
     environment_vars = [
-      "HARDENING_KITTY_PATH=${path.root}/scripts/HardeningKitty",
+      "HARDENING_KITTY_PATH=${var.image_folder}\\HardeningKitty",
       "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv",
-      "IMAGE_OS=${local.image_os}",
-      "BUILD_WITH_GUI=${local.deploy_gui}"
     ]
-    execution_policy = "unrestricted"
-    scripts = [
-      "${path.root}/scripts/HardeningKitty/Invoke-HardeningKitty.ps1",
+    inline = [
+      "cd ${var.image_folder}\\HardeningKitty",
+      "Invoke-HardeningKitty -Mode HailMary -Log -Report -FileFindingList \".\\lists\\$env:HARDENING_KITTY_FILES_TO_RUN\""
     ]
   }
-
 
   provisioner "windows-restart" {
     restart_timeout = "30m"
