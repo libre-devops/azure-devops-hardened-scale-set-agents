@@ -224,49 +224,27 @@ build {
 
   provisioner "file" {
     source      = "scripts/HardeningKitty"
-    destination = "C:\\"
+    destination = "C:\\HardeningKitty\\list"
   }
 
-  provisioner "powershell" {
-    inline = [
-      "Write-Output 'Listing files in C:\\HardeningKitty...'",
-      "Get-ChildItem -Path C:\\HardeningKitty -Recurse | Format-List",
-      "",
-      "Write-Output 'Checking if the CSV file exists at the expected path...'",
-      "if (Test-Path 'C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv') {",
-      "  Write-Output 'CSV file found: C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv'",
-      "} else {",
-      "  Write-Error 'CSV file not found: C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv'",
-      "  exit 1",
-      "}",
-      "",
-      "Write-Output 'Listing the contents of the C:\\HardeningKitty\\lists directory...'",
-      "Get-ChildItem -Path C:\\HardeningKitty\\lists | Format-List"
-    ]
+  provisioner "file" {
+    source      = "scripts/HardeningKitty/lists"
+    destination = "C:\\Windows\\Temp"
   }
 
   provisioner "powershell" {
     environment_vars = [
-      "HARDENING_KITTY_PATH=C:\\HardeningKitty",
+      "HARDENING_KITTY_PATH=C:\\Windows\\Temp\\HardeningKitty",
       "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv",
       "IMAGE_OS=${local.image_os}",
       "BUILD_WITH_GUI=${local.deploy_gui}"
     ]
     execution_policy = "unrestricted"
-    inline = [
-      "Write-Output 'Starting HardeningKitty with file: $env:HARDENING_KITTY_FILES_TO_RUN'",
-      "Write-Output 'Navigating to $env:HARDENING_KITTY_PATH directory...'",
-      "cd $env:HARDENING_KITTY_PATH",
-      "",
-      "Write-Output 'Listing contents of $env:HARDENING_KITTY_PATH before running HardeningKitty...'",
-      "Get-ChildItem -Path $env:HARDENING_KITTY_PATH -Recurse | Format-List",
-      "",
-      "Invoke-HardeningKitty -Mode HailMary -Log -Report -FileFindingList \"$env:HARDENING_KITTY_PATH\\lists\\$env:HARDENING_KITTY_FILES_TO_RUN\"",
-      "",
-      "Write-Output 'Listing contents of $env:HARDENING_KITTY_PATH\\logs after running HardeningKitty...'",
-      "Get-ChildItem -Path $env:HARDENING_KITTY_PATH\\logs | Format-List"
+    scripts = [
+      "${path.root}/scripts/HardeningKitty/Invoke-HardeningKitty.ps1",
     ]
   }
+
 
   provisioner "windows-restart" {
     restart_timeout = "30m"
