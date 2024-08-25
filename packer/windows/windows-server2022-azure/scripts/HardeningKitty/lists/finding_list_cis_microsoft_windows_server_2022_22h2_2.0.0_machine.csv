@@ -28,4 +28,3 @@ ID,Category,Name,Method,MethodArgument,RegistryPath,RegistryItem,ClassName,Names
 2.2.16,"User Rights Assignment","Create permanent shared objects",accesschk,SeCreatePermanentPrivilege,,,,,,,,=,Medium
 2.2.17,"User Rights Assignment","Create symbolic links (DC)",accesschk,SeCreateSymbolicLinkPrivilege,,,,,,BUILTIN\Administrators,BUILTIN\Administrators,=,Medium
 2.2.18.1,"User Rights Assignment","Create symbolic links (Member)",accesschk,SeCreateSymbolicLinkPrivilege,,,,,,BUILTIN\Administrators,BUILTIN\Administrators,=,Medium
-2.2.18.2,"User Rights Assignment","Create symbolic links (Member, Hyper-V)",accesschk,SeCreateSymbolicLinkPrivilege,,,,,,S-1-5-83-0;BUILTIN\Administrators,"NT VIRTUAL MACHINE\Virtual Machines;BUILTIN\Administrators",=,Medium
