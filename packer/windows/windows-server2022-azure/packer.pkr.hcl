@@ -224,17 +224,17 @@ build {
 
   provisioner "file" {
     source      = "scripts/HardeningKitty"
-    destination = "C:\\Windows\\Temp\\HardeningKitty"
+    destination = "C:\\HardeningKitty"
   }
 
   provisioner "file" {
     source      = "scripts/HardeningKitty/lists"
-    destination = "C:\\Windows\\Temp\\HardeningKitty\\lists"
+    destination = "C:\\HardeningKitty\\lists"
   }
 
   provisioner "powershell" {
     environment_vars = [
-      "HARDENING_KITTY_PATH=C:\\Windows\\Temp\\HardeningKitty",
+      "HARDENING_KITTY_PATH=C:\\HardeningKitty",
       "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv",
       "IMAGE_OS=${local.image_os}",
       "BUILD_WITH_GUI=${local.deploy_gui}"
