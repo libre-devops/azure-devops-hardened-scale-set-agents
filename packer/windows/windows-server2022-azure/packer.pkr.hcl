@@ -222,7 +222,7 @@ build {
     ]
   }
 
-  provisioner "file" {g
+  provisioner "file" {
     source      = "scripts/HardeningKitty"
     destination = "C:\\"
   }
