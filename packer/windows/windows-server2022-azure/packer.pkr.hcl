@@ -222,28 +222,38 @@ build {
     ]
   }
 
-  provisioner "file" {
+  provisioner "file" {g
     source      = "scripts/HardeningKitty"
-    destination = "C:\\HardeningKitty\\list"
+    destination = "C:\\"
   }
 
-  provisioner "file" {
-    source      = "scripts/HardeningKitty/lists"
-    destination = "C:\\Windows\\Temp"
+  provisioner "powershell" {
+    inline = [
+      "Write-Output 'Checking if the CSV file exists at the expected path...'",
+      "if (Test-Path 'C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv') {",
+      "  Write-Output 'CSV file found: C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv'",
+      "} else {",
+      "  Write-Error 'CSV file not found: C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv'",
+      "  exit 1",
+      "}"
+    ]
   }
 
   provisioner "powershell" {
     environment_vars = [
-      "HARDENING_KITTY_PATH=C:\\Windows\\Temp\\HardeningKitty",
+      "HARDENING_KITTY_PATH=C:\\HardeningKitty",
       "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv",
       "IMAGE_OS=${local.image_os}",
       "BUILD_WITH_GUI=${local.deploy_gui}"
     ]
     execution_policy = "unrestricted"
-    scripts = [
-      "${path.root}/scripts/HardeningKitty/Invoke-HardeningKitty.ps1",
+    inline = [
+      "Write-Output 'Starting HardeningKitty...'",
+      "cd $env:HARDENING_KITTY_PATH",
+      "Invoke-HardeningKitty -Mode HailMary -Log -SkipRestorePoint -Report -FileFindingList \"$env:HARDENING_KITTY_PATH\\lists\\$env:HARDENING_KITTY_FILES_TO_RUN\""
     ]
   }
+
 
 
   provisioner "windows-restart" {
