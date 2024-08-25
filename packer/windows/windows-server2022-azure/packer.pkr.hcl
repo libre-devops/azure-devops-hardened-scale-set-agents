@@ -223,6 +223,15 @@ build {
     ]
   }
 
+  // Verify files are uploaded correctly
+  provisioner "powershell" {
+    inline = [
+      "Write-Output 'Listing files in ${var.image_folder}\\HardeningKitty\\lists'",
+      "Get-ChildItem -Path ${var.image_folder}\\HardeningKitty\\lists",
+      "if (-not (Test-Path '${var.image_folder}\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv')) { throw 'HardeningKitty CSV file not found' }"
+    ]
+  }
+
   // HardeningKitty execution
   provisioner "powershell" {
     environment_vars = [
@@ -231,7 +240,7 @@ build {
     ]
     inline = [
       "cd ${var.image_folder}\\HardeningKitty",
-      "Invoke-HardeningKitty -Mode HailMary -Log -Report -FileFindingList \".\\lists\\$env:HARDENING_KITTY_FILES_TO_RUN\""
+      "Invoke-HardeningKitty -Mode HailMary -Log -Report -FileFindingList \"${var.image_folder}\\HardeningKitty\\lists\\$env:HARDENING_KITTY_FILES_TO_RUN\""
     ]
   }
 
