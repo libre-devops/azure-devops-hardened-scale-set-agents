@@ -224,7 +224,7 @@ build {
 
   provisioner "file" {
     source      = "scripts/HardeningKitty"
-    destination = "C:\\HardeningKitty"
+    destination = "C:\\"
   }
 
   provisioner "powershell" {
