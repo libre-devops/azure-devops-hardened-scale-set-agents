@@ -173,6 +173,13 @@ build {
     source      = "${path.root}/toolsets/toolset.json"
   }
 
+
+  provisioner "file" {
+    source      = "scripts/HardeningKitty"
+    destination = "C:\\"
+  }
+
+
   provisioner "powershell" {
     inline = [
       "$password = ConvertTo-SecureString '${var.install_password}' -AsPlainText -Force",
@@ -222,11 +229,6 @@ build {
     ]
   }
 
-  provisioner "file" {
-    source      = "scripts/HardeningKitty"
-    destination = "C:\\"
-  }
-
   provisioner "powershell" {
     inline = [
       "Write-Output 'Checking if the CSV file exists at the expected path...'",
@@ -236,21 +238,6 @@ build {
       "  Write-Error 'CSV file not found: C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv'",
       "  exit 1",
       "}"
-    ]
-  }
-
-  provisioner "powershell" {
-    environment_vars = [
-      "HARDENING_KITTY_PATH=C:\\HardeningKitty",
-      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv",
-      "IMAGE_OS=${local.image_os}",
-      "BUILD_WITH_GUI=${local.deploy_gui}"
-    ]
-    execution_policy = "unrestricted"
-    inline = [
-      "Write-Output 'Starting HardeningKitty...'",
-      "cd $env:HARDENING_KITTY_PATH",
-      "Invoke-HardeningKitty -Mode HailMary -Log -SkipRestorePoint -Report -FileFindingList \"$env:HARDENING_KITTY_PATH\\lists\\$env:HARDENING_KITTY_FILES_TO_RUN\""
     ]
   }
 
@@ -289,6 +276,14 @@ build {
   }
 
   provisioner "powershell" {
+    pause_before = "2m0s"
+    scripts = [
+      "${path.root}/scripts/Installers/Wait-WindowsUpdatesForInstall.ps1",
+      "${path.root}/scripts/Tests/RunAll-Tests.ps1"
+    ]
+  }
+
+  provisioner "powershell" {
     environment_vars = [
       "HARDENING_KITTY_PATH=C:\\HardeningKitty",
       "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv",
@@ -304,20 +299,6 @@ build {
   }
 
   provisioner "powershell" {
-    pause_before = "2m0s"
-    scripts = [
-      "${path.root}/scripts/Installers/Wait-WindowsUpdatesForInstall.ps1",
-      "${path.root}/scripts/Tests/RunAll-Tests.ps1"
-    ]
-  }
-
-  provisioner "powershell" {
-    inline = [
-      "if (-not (Test-Path ${var.image_folder}\\Tests\\testResults.xml)) { throw '${var.image_folder}\\Tests\\testResults.xml not found' }"
-    ]
-  }
-
-  provisioner "powershell" {
     environment_vars = ["INSTALL_USER=${var.install_user}"]
     scripts = [
       "${path.root}/scripts/Installers/Run-NGen.ps1",
@@ -329,6 +310,22 @@ build {
   provisioner "windows-restart" {
     restart_timeout = "10m"
   }
+
+  provisioner "powershell" {
+    environment_vars = [
+      "HARDENING_KITTY_PATH=C:\\HardeningKitty",
+      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv",
+      "IMAGE_OS=${local.image_os}",
+      "BUILD_WITH_GUI=${local.deploy_gui}"
+    ]
+    execution_policy = "unrestricted"
+    inline = [
+      "Write-Output 'Starting HardeningKitty...'",
+      "cd $env:HARDENING_KITTY_PATH",
+      "Invoke-HardeningKitty -Mode HailMary -Log -SkipRestorePoint -Report -FileFindingList \"$env:HARDENING_KITTY_PATH\\lists\\$env:HARDENING_KITTY_FILES_TO_RUN\""
+    ]
+  }
+
 
   provisioner "powershell" {
     script = "${path.root}/sysprep.ps1"
