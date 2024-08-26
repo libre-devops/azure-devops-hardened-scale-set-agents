@@ -112,13 +112,14 @@ source "azure-arm" "build" {
   os_type                   = "Windows"
   image_publisher           = "MicrosoftWindowsServer"
   image_offer               = "WindowsServer"
-  image_sku                 = local.deploy_gui == true ? "2022-datacenter-azure-edition-hotpatch" : "2022-datacenter-azure-edition-core"
-  vm_size        = "Standard_B2ms"
-  communicator   = "winrm"
-  winrm_insecure = "true"
-  winrm_use_ssl  = "true"
-  winrm_username = "packer"
-  winrm_timeout  = "15m"
+  image_sku                 = local.deploy_gui == true ? "2022-datacenter-azure-edition-hotpatch" :
+    "2022-datacenter-azure-edition-core"
+  vm_size                   = "Standard_B2ms"
+  communicator              = "winrm"
+  winrm_insecure            = "true"
+  winrm_use_ssl             = "true"
+  winrm_username            = "packer"
+  winrm_timeout             = "15m"
 
   user_assigned_managed_identities = [
     "/subscriptions/${var.subscription_id}/resourcegroups/${local.gallery_rg_name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/${local.managed_identity_name}"
@@ -214,7 +215,7 @@ build {
     execution_policy = "unrestricted"
     scripts = [
       "${path.root}/scripts/Installers/Configure-Antivirus.ps1",
-      #       "${path.root}/scripts/Installers/Install-PowerShellModules.ps1",
+      "${path.root}/scripts/Installers/Install-PowerShellModules.ps1",
       "${path.root}/scripts/Installers/Install-Choco.ps1",
       "${path.root}/scripts/Installers/Install-HardeningKitty.ps1",
       "${path.root}/scripts/Installers/Initialize-VM.ps1",
@@ -254,8 +255,6 @@ build {
     ]
   }
 
-
-
   provisioner "windows-restart" {
     restart_timeout = "30m"
   }
@@ -288,6 +287,21 @@ build {
     check_registry        = true
     restart_check_command = "powershell -command \"& {if ((-not (Get-Process TiWorker.exe -ErrorAction SilentlyContinue)) -and (-not [System.Environment]::HasShutdownStarted) ) { Write-Output 'Restart complete' }}\""
     restart_timeout       = "30m"
+  }
+
+  provisioner "powershell" {
+    environment_vars = [
+      "HARDENING_KITTY_PATH=C:\\HardeningKitty",
+      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv",
+      "IMAGE_OS=${local.image_os}",
+      "BUILD_WITH_GUI=${local.deploy_gui}"
+    ]
+    execution_policy = "unrestricted"
+    inline = [
+      "Write-Output 'Starting HardeningKitty...'",
+      "cd $env:HARDENING_KITTY_PATH",
+      "Invoke-HardeningKitty -Mode HailMary -Log -SkipRestorePoint -Report -FileFindingList \"$env:HARDENING_KITTY_PATH\\lists\\$env:HARDENING_KITTY_FILES_TO_RUN\""
+    ]
   }
 
   provisioner "powershell" {
