@@ -29,13 +29,6 @@ ID,Category,Name,Method,MethodArgument,RegistryPath,RegistryItem,ClassName,Names
 2.2.17,"User Rights Assignment","Create symbolic links (DC)",accesschk,SeCreateSymbolicLinkPrivilege,,,,,,BUILTIN\Administrators,BUILTIN\Administrators,=,Medium
 2.2.18.1,"User Rights Assignment","Create symbolic links (Member)",accesschk,SeCreateSymbolicLinkPrivilege,,,,,,BUILTIN\Administrators,BUILTIN\Administrators,=,Medium
 2.2.19,"User Rights Assignment","Debug programs",accesschk,SeDebugPrivilege,,,,,,BUILTIN\Administrators,BUILTIN\Administrators,=,Medium
-2.2.20,"User Rights Assignment","Deny access to this computer from the network (DC)",accesschk,SeDenyNetworkLogonRight,,,,,,BUILTIN\Guests,BUILTIN\Guests,=,Medium
-2.2.21,"User Rights Assignment","Deny access to this computer from the network (Member)",accesschk,SeDenyNetworkLogonRight,,,,,,BUILTIN\Guests,"BUILTIN\Guests;NT AUTHORITY\Local account and member of Administrators group",=,Medium
-2.2.22,"User Rights Assignment","Deny log on as a batch job",accesschk,SeDenyBatchLogonRight,,,,,,,BUILTIN\Guests,=,Medium
-2.2.23,"User Rights Assignment","Deny log on as a service",accesschk,SeDenyServiceLogonRight,,,,,,,BUILTIN\Guests,=,Medium
-2.2.24,"User Rights Assignment","Deny log on locally",accesschk,SeDenyInteractiveLogonRight,,,,,,BUILTIN\Guests,BUILTIN\Guests,=,Medium
-2.2.25,"User Rights Assignment","Deny log on through Remote Desktop Services (DC)",accesschk,SeDenyRemoteInteractiveLogonRight,,,,,,,BUILTIN\Guests,=,Medium
-2.2.26,"User Rights Assignment","Deny log on through Remote Desktop Services (Member)",accesschk,SeDenyRemoteInteractiveLogonRight,,,,,,,"BUILTIN\Guests;NT AUTHORITY\Local account",=,Medium
 2.2.27,"User Rights Assignment","Enable computer and user accounts to be trusted for delegation (DC)",accesschk,SeEnableDelegationPrivilege,,,,,,BUILTIN\Administrators,BUILTIN\Administrators,=,Medium
 2.2.28,"User Rights Assignment","Enable computer and user accounts to be trusted for delegation (Member)",accesschk,SeEnableDelegationPrivilege,,,,,,,,=,Medium
 2.2.29,"User Rights Assignment","Force shutdown from a remote system",accesschk,SeRemoteShutdownPrivilege,,,,,,BUILTIN\Administrators,BUILTIN\Administrators,=,Medium
