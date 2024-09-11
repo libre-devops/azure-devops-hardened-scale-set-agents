@@ -41,10 +41,13 @@
                 "name": "azure-cli"
             },
             {
+                "name": "databricks-cli"
+            },
+            {
                 "name": "openssl"
             },
             {
-                "name": "terraform"
+                "name": "tenv"
             },
             {
                 "name": "packer"

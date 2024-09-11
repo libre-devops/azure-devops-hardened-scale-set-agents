@@ -10,6 +10,12 @@ Describe "Jq" {
     }
 }
 
+Describe "Databricks-Cli" {
+    It "Databricks-Cli" {
+        "databricks --version" | Should -ReturnZeroExitCode
+    }
+}
+
 Describe "PowerShell Core" {
     It "pwsh" {
         "pwsh --version" | Should -ReturnZeroExitCode
@@ -26,9 +32,9 @@ Describe "GitHub CLI" {
     }
 }
 
-Describe "Terraform" {
-    It "Terraform" {
-        "terraform --version" | Should -ReturnZeroExitCode
+Describe "Tenv" {
+    It "Tenv" {
+        "tenv --version" | Should -ReturnZeroExitCode
     }
 }
 

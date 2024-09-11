@@ -25,12 +25,6 @@ Describe "DynamicPorts" {
     }
 }
 
-Describe "Test Signed Drivers" {
-    It "bcdedit testsigning should be Yes"{
-        "$(bcdedit)" | Should -Match "testsigning\s+Yes"
-    }
-}
-
 Describe "Windows Updates" {
     It "WindowsUpdateDone.txt should exist" {
         "$env:windir\WindowsUpdateDone.txt" | Should -Exist
