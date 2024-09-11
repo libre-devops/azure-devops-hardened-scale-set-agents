@@ -62,5 +62,12 @@
                 "name": "sysinternals"
             }
         ]
+    },
+    "pyenv" : {
+        "versions": [
+            {
+                "name": "latest"
+            }
+        ]
     }
 }
