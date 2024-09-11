@@ -31,12 +31,6 @@ function Disable-InternetExplorerWelcomeScreen
     Write-Host "Disabled IE Welcome screen"
 }
 
-function Disable-UserAccessControl
-{
-    Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ConsentPromptBehaviorAdmin" -Value 00000000 -Force
-    Write-Host "User Access Control (UAC) has been disabled."
-}
-
 
 # Enable $ErrorActionPreference='Stop' for AllUsersAllHosts
 Add-Content -Path $profile.AllUsersAllHosts -Value '$ErrorActionPreference="Stop"'
@@ -52,9 +46,6 @@ if ($BuildWithGui)
     Write-Host "Disable IE ESC"
     Disable-InternetExplorerESC
 }
-
-Write-Host "Disable UAC"
-Disable-UserAccessControl
 
 Write-Host "Disable IE Welcome Screen"
 Disable-InternetExplorerWelcomeScreen
