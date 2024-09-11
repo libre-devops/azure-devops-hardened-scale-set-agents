@@ -120,7 +120,7 @@ module "role_assignments" {
 
 
 module "key_vault" {
-  source = "libre-devops/keyvault/azurerm"
+  source = "github.com/libre-devops/terraform-azurerm-keyvault"
 
   key_vaults = [
     {
