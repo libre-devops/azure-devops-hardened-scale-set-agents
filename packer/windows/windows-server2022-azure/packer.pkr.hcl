@@ -286,15 +286,23 @@ build {
   provisioner "powershell" {
     environment_vars = [
       "HARDENING_KITTY_PATH=C:\\HardeningKitty",
-      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv",
+      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv;finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_user.csv",
       "IMAGE_OS=${local.image_os}",
       "BUILD_WITH_GUI=${local.deploy_gui}"
     ]
     execution_policy = "unrestricted"
     inline = [
       "Write-Output 'Starting HardeningKitty...'",
+
+      # Navigate to the HardeningKitty path
       "cd $env:HARDENING_KITTY_PATH",
-      "Invoke-HardeningKitty -Mode HailMary -Log -SkipRestorePoint -Report -FileFindingList \"$env:HARDENING_KITTY_PATH\\lists\\$env:HARDENING_KITTY_FILES_TO_RUN\""
+
+      # Split the HARDENING_KITTY_FILES_TO_RUN by ';' and loop through each file
+      "$files = $env:HARDENING_KITTY_FILES_TO_RUN -split ';'",
+      "foreach ($file in $files) {",
+      "Write-Output \"Running HardeningKitty for $file...\"",
+      "Invoke-HardeningKitty -Mode HailMary -Log -SkipRestorePoint -Report -FileFindingList \"$env:HARDENING_KITTY_PATH\\lists\\$file\"",
+      "}"
     ]
   }
 
