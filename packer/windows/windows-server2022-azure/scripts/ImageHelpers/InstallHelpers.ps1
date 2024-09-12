@@ -527,7 +527,8 @@ function Convert-ToBoolean($value)
     }
 }
 
-function Invoke-ScriptBlockWithRetry {
+function Invoke-ScriptBlockWithRetry
+{
     <#
     .SYNOPSIS
         Executes a script block with retry logic.
@@ -556,15 +557,20 @@ function Invoke-ScriptBlockWithRetry {
         [int] $RetryIntervalSeconds = 5
     )
 
-    while ($RetryCount -gt 0) {
-        try {
+    while ($RetryCount -gt 0)
+    {
+        try
+        {
             & $Command
             return
-        } catch {
+        }
+        catch
+        {
             Write-Host "There is an error encountered:`n $_"
             $RetryCount--
 
-            if ($RetryCount -eq 0) {
+            if ($RetryCount -eq 0)
+            {
                 exit 1
             }
 
@@ -572,3 +578,20 @@ function Invoke-ScriptBlockWithRetry {
             Start-Sleep -Seconds $RetryIntervalSeconds
         }
     }
+}
+
+function Get-ToolsetContent
+{
+    <#
+    .SYNOPSIS
+        Retrieves the content of the toolset.json file.
+
+    .DESCRIPTION
+        This function reads the toolset.json file in path provided by IMAGE_FOLDER
+        environment variable and returns the content as a PowerShell object.
+    #>
+
+    $toolsetPath = Join-Path $env:IMAGE_FOLDER "toolset.json"
+    $toolsetJson = Get-Content -Path $toolsetPath -Raw
+    ConvertFrom-Json -InputObject $toolsetJson
+}
