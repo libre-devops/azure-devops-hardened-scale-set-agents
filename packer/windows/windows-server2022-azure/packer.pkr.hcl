@@ -227,6 +227,7 @@ build {
       "${path.root}/scripts/Installers/Configure-Antivirus.ps1",
 #       "${path.root}/scripts/Installers/Install-PowerShellModules.ps1",
       "${path.root}/scripts/Installers/Install-Choco.ps1",
+      "${path.root}/scripts/Installers/Install-CommonUtils.ps1",
       "${path.root}/scripts/Installers/Install-Toolset.ps1",
       "${path.root}/scripts/Installers/Configure-Toolset.ps1",
       "${path.root}/scripts/Installers/Install-Pipx.ps1",
@@ -250,12 +251,6 @@ build {
 
   provisioner "windows-restart" {
     restart_timeout = "30m"
-  }
-
-  provisioner "powershell" {
-    scripts = [
-      "${path.root}/scripts/Installers/Install-CommonUtils.ps1",
-    ]
   }
 
   provisioner "windows-restart" {
