@@ -26,6 +26,7 @@ Export-ModuleMember -Function @(
     'Get-ToolsetToolFullPath'
     'Invoke-ScriptBlockWithRetry'
     'Get-ToolsetContent'
+    'Invoke-DownloadWithRetry'
     'Get-TCToolPath'
     'Get-TCToolVersionPath'
     'Stop-SvcWithErrHandling'
