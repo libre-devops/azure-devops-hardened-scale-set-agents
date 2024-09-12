@@ -27,6 +27,7 @@ Export-ModuleMember -Function @(
     'Invoke-ScriptBlockWithRetry'
     'Get-ToolsetContent'
     'Invoke-DownloadWithRetry'
+    'Expand-7ZipArchive',
     'Get-TCToolPath'
     'Get-TCToolVersionPath'
     'Stop-SvcWithErrHandling'

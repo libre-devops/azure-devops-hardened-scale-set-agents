@@ -676,3 +676,48 @@ function Invoke-DownloadWithRetry {
 
     return $Path
 }
+
+function Expand-7ZipArchive
+{
+    <#
+    .SYNOPSIS
+        Extracts files from a 7-Zip archive.
+
+    .DESCRIPTION
+        This function uses the 7z.exe command-line tool to extract files from an archive.
+        The archive path, destination path, and extract method are specified as parameters.
+
+    .PARAMETER Path
+        The path to the archive.
+
+    .PARAMETER DestinationPath
+        The path to the directory where the files will be extracted.
+
+    .PARAMETER ExtractMethod
+        The method used to extract the files.
+        Valid values are "x" (extract with full paths) and "e" (extract without paths).
+
+    .EXAMPLE
+        Expand-7ZipArchive -Path "C:\archive.7z" -DestinationPath "C:\extracted" -ExtractMethod "x"
+
+        Extracts files from the "C:\archive.7z" archive to the "C:\extracted" directory keeping the full paths.
+    #>
+    Param
+    (
+        [Parameter(Mandatory = $true)]
+        [string] $Path,
+        [Parameter(Mandatory = $true)]
+        [string] $DestinationPath,
+        [ValidateSet("x", "e")]
+        [char] $ExtractMethod = "x"
+    )
+
+    Write-Host "Expand archive '$PATH' to '$DestinationPath' directory"
+    7z.exe $ExtractMethod "$Path" -o"$DestinationPath" -y | Out-Null
+
+    if ($LASTEXITCODE -ne 0)
+    {
+        Write-Host "There is an error during expanding '$Path' to '$DestinationPath' directory"
+        exit 1
+    }
+}
