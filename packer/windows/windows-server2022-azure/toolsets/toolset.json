@@ -1,4 +1,27 @@
 {
+    "toolcache": [
+        {
+            "name": "Python",
+            "url" : "https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json",
+            "arch": "x64",
+            "platform" : "win32",
+            "versions": [
+                "3.11.*",
+                "3.12.*"
+            ],
+            "default": "3.12.*"
+        },
+        {
+            "name": "Python",
+            "url" : "https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json",
+            "arch": "x86",
+            "platform" : "win32",
+            "versions": [
+                "3.11.*",
+                "3.12.*"
+            ]
+        }
+    ],
     "powershellModules": [
         {
             "name": "Az"
@@ -6,7 +29,6 @@
         {
             "name": "AzureAD"
         },
-
         {
             "name": "Pester"
         },
@@ -18,9 +40,6 @@
         },
         {
             "name": "Microsoft.Graph"
-        },
-        {
-            "name": "CISDSC"
         }
     ],
     "choco": {
@@ -63,11 +82,18 @@
             }
         ]
     },
-    "pyenv" : {
-        "versions": [
-            {
-                "name": "latest"
-            }
-        ]
-    }
+    "windowsFeatures": [
+        { "name": "Containers" },
+        { "name": "Microsoft-Windows-Subsystem-Linux", "optionalFeature": true },
+        { "name": "VirtualMachinePlatform", "optionalFeature": true },
+        { "name": "Hyper-V", "includeAllSubFeatures": true },
+        { "name": "HypervisorPlatform", "optionalFeature": true },
+        { "name": "Hyper-V-PowerShell" }
+    ],
+    "pipx": [
+        {
+            "package": "checkov",
+            "cmd": "checkov --version"
+        }
+    ]
 }

@@ -215,13 +215,14 @@ build {
       "IMAGE_VERSION=${local.image_version}",
       "IMAGE_OS=${local.image_os}",
       "AGENT_TOOLSDIRECTORY=${var.agent_tools_directory}",
+      "IMAGE_FOLDER=${var.image_folder}",
       "IMAGEDATA_FILE=${var.imagedata_file}",
       "BUILD_WITH_GUI=${local.deploy_gui}"
     ]
     execution_policy = "unrestricted"
     scripts = [
       "${path.root}/scripts/Installers/Configure-Antivirus.ps1",
-      "${path.root}/scripts/Installers/Install-PowerShellModules.ps1",
+#       "${path.root}/scripts/Installers/Install-PowerShellModules.ps1",
       "${path.root}/scripts/Installers/Install-Choco.ps1",
       "${path.root}/scripts/Installers/Install-HardeningKitty.ps1",
       "${path.root}/scripts/Installers/Initialize-VM.ps1",
