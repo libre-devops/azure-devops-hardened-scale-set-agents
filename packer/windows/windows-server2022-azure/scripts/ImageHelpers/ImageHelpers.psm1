@@ -24,6 +24,8 @@ Export-ModuleMember -Function @(
     'Install-Binary'
     'Get-ToolsetContent'
     'Get-ToolsetToolFullPath'
+    'Get-TCToolPath'
+    'Get-TCToolVersionPath'
     'Stop-SvcWithErrHandling'
     'Set-SvcWithErrHandling'
     'Start-DownloadWithRetry'
