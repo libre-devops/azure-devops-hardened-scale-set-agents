@@ -1,4 +1,4 @@
-Write-Host "Disable Windows Defender..."
+Write-Host "Configure indows Defender..."
 $avPreference = @(
     @{DisableArchiveScanning = $true}
     @{DisableAutoExclusions = $true}
