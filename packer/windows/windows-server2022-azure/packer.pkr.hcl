@@ -150,7 +150,10 @@ build {
   sources = ["source.azure-arm.build"]
 
   provisioner "powershell" {
-    inline = ["New-Item -Path ${var.image_folder} -ItemType Directory -Force"]
+    inline = [
+      "New-Item -Path ${var.image_folder} -ItemType Directory -Force",
+      "New-Item -Path ${var.agent_tools_directory} -ItemType Directory -Force"
+    ]
   }
 
   provisioner "file" {
