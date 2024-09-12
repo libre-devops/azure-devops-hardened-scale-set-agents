@@ -93,7 +93,7 @@
     "pipx": [
         {
             "package": "checkov",
-            "cmd": "checkov --version"
+            "cmd": "checkov"
         }
     ]
 }
