@@ -7,7 +7,8 @@ Write-Host "Installing pipx..."
 $env:PIPX_BIN_DIR = "${env:ProgramFiles(x86)}\pipx_bin"
 $env:PIPX_HOME = "${env:ProgramFiles(x86)}\pipx"
 
-pip install pipx
+pip3 install --upgrade pip
+pip3 install pipx
 if ($LASTEXITCODE -ne 0) {
     throw "pipx installation failed with exit code $LASTEXITCODE"
 }
