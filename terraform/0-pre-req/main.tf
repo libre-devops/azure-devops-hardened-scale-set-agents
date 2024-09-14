@@ -124,10 +124,10 @@ module "key_vault" {
 
   key_vaults = [
     {
-      name     = "kv-${var.short}-${var.loc}-${var.env}-vmss-01"
-      rg_name  = module.rg.rg_name
-      location = module.rg.rg_location
-      tags     = module.rg.rg_tags
+      name                            = "kv-${var.short}-${var.loc}-${var.env}-vmss-01"
+      rg_name                         = module.rg.rg_name
+      location                        = module.rg.rg_location
+      tags                            = module.rg.rg_tags
       enabled_for_deployment          = true
       enabled_for_disk_encryption     = true
       enabled_for_template_deployment = true
