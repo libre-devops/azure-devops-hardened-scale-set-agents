@@ -1,4 +1,9 @@
 ID,Category,Name,Method,MethodArgument,RegistryPath,RegistryItem,ClassName,Namespace,Property,DefaultValue,RecommendedValue,Operator,Severity
+10230,"Security Options","User Account Control: Run all administrators in Admin Approval Mode",Registry,,HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System,EnableLUA,,,,1,1,=,Medium
+10302,"User Rights Assignment","Access this computer from the network",accesschk,SeNetworkLogonRight,,,,,,"BUILTIN\Backup Operators;BUILTIN\Users;BUILTIN\Administrators;Everyone","NT AUTHORITY\Authenticated Users;BUILTIN\Administrators",=,Medium
+10304,"User Rights Assignment","Allow log on locally",accesschk,SeInteractiveLogonRight,,,,,,"BUILTIN\Backup Operators;BUILTIN\Users;BUILTIN\Administrators;COMPUTERNAME\Guest",BUILTIN\Administrators,=,Medium
+10311,"User Rights Assignment","Deny access to this computer from the network",accesschk,SeDenyNetworkLogonRight,,,,,,COMPUTERNAME\Guest,"NT AUTHORITY\Local account and member of Administrators group",=,Medium
+10312,"User Rights Assignment","Deny log on through Remote Desktop Services",accesschk,SeDenyRemoteInteractiveLogonRight,,,,,,,"NT AUTHORITY\Local account",=,Medium
 11007,"Administrative Templates: Windows Components","WinRM Client: Allow Basic authentication",Registry,,HKLM:\Software\Policies\Microsoft\Windows\WinRM\Client,AllowBasic,,,,1,0,=,Medium
 11008,"Administrative Templates: Windows Components","WinRM Client: Allow unencrypted traffic",Registry,,HKLM:\Software\Policies\Microsoft\Windows\WinRM\Client,AllowUnencryptedTraffic,,,,1,0,=,Medium
 11009,"Administrative Templates: Windows Components","WinRM Client: Disallow Digest authentication",Registry,,HKLM:\Software\Policies\Microsoft\Windows\WinRM\Client,AllowDigest,,,,1,0,=,Medium

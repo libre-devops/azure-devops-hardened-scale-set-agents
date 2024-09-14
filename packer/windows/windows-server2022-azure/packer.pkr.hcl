@@ -250,10 +250,6 @@ build {
   }
 
   provisioner "windows-restart" {
-    restart_timeout = "30m"
-  }
-
-  provisioner "windows-restart" {
     restart_timeout = "10m"
   }
 
@@ -277,6 +273,14 @@ build {
   }
 
   provisioner "powershell" {
+    environment_vars = [
+      "IMAGE_VERSION=${local.image_version}",
+      "IMAGE_OS=${local.image_os}",
+      "AGENT_TOOLSDIRECTORY=${var.agent_tools_directory}",
+      "IMAGE_FOLDER=${var.image_folder}",
+      "IMAGEDATA_FILE=${var.imagedata_file}",
+      "BUILD_WITH_GUI=${local.deploy_gui}"
+    ]
     pause_before = "2m0s"
     scripts = [
       "${path.root}/scripts/Installers/Wait-WindowsUpdatesForInstall.ps1",
@@ -287,7 +291,7 @@ build {
   provisioner "powershell" {
     environment_vars = [
       "HARDENING_KITTY_PATH=C:\\HardeningKitty",
-      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv;finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_user.csv;finding_list_msft_security_baseline_windows_server_2022_21h2_member_machine.csv",
+      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv;finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_user.csv;finding_list_msft_security_baseline_windows_server_2022_21h2_member_machine.csv;removed_finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv;finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_user.csv;removed_finding_list_msft_security_baseline_windows_server_2022_21h2_member_machine.csv",
       "IMAGE_OS=${local.image_os}",
       "BUILD_WITH_GUI=${local.deploy_gui}"
     ]
@@ -314,33 +318,6 @@ build {
       "${path.root}/scripts/Installers/Finalize-VM.ps1"
     ]
     skip_clean = true
-  }
-
-  provisioner "windows-restart" {
-    restart_timeout = "10m"
-  }
-
-  provisioner "powershell" {
-    environment_vars = [
-      "HARDENING_KITTY_PATH=C:\\HardeningKitty",
-      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv;finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_user.csv;finding_list_msft_security_baseline_windows_server_2022_21h2_member_machine.csv",
-      "IMAGE_OS=${local.image_os}",
-      "BUILD_WITH_GUI=${local.deploy_gui}"
-    ]
-    execution_policy = "unrestricted"
-    inline = [
-      "Write-Output 'Starting HardeningKitty...'",
-
-      # Navigate to the HardeningKitty path
-      "cd $env:HARDENING_KITTY_PATH",
-
-      # Split the HARDENING_KITTY_FILES_TO_RUN by ';' and loop through each file
-      "$files = $env:HARDENING_KITTY_FILES_TO_RUN -split ';'",
-      "foreach ($file in $files) {",
-      "Write-Output \"Running HardeningKitty for $file...\"",
-      "Invoke-HardeningKitty -Mode HailMary -Log -SkipRestorePoint -Report -FileFindingList \"$env:HARDENING_KITTY_PATH\\lists\\$file\"",
-      "}"
-    ]
   }
 
   provisioner "powershell" {

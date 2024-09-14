@@ -1,5 +1,14 @@
 ID,Category,Name,Method,MethodArgument,RegistryPath,RegistryItem,ClassName,Namespace,Property,DefaultValue,RecommendedValue,Operator,Severity
 2.2.18.2,"User Rights Assignment","Create symbolic links (Member, Hyper-V)",accesschk,SeCreateSymbolicLinkPrivilege,,,,,,S-1-5-83-0;BUILTIN\Administrators,"NT VIRTUAL MACHINE\Virtual Machines;BUILTIN\Administrators",=,Medium
+2.2.20,"User Rights Assignment","Deny access to this computer from the network (DC)",accesschk,SeDenyNetworkLogonRight,,,,,,BUILTIN\Guests,BUILTIN\Guests,=,Medium
+2.2.21,"User Rights Assignment","Deny access to this computer from the network (Member)",accesschk,SeDenyNetworkLogonRight,,,,,,BUILTIN\Guests,"BUILTIN\Guests;NT AUTHORITY\Local account and member of Administrators group",=,Medium
+2.2.22,"User Rights Assignment","Deny log on as a batch job",accesschk,SeDenyBatchLogonRight,,,,,,,BUILTIN\Guests,=,Medium
+2.2.23,"User Rights Assignment","Deny log on as a service",accesschk,SeDenyServiceLogonRight,,,,,,,BUILTIN\Guests,=,Medium
+2.2.24,"User Rights Assignment","Deny log on locally",accesschk,SeDenyInteractiveLogonRight,,,,,,BUILTIN\Guests,BUILTIN\Guests,=,Medium
+2.2.25,"User Rights Assignment","Deny log on through Remote Desktop Services (DC)",accesschk,SeDenyRemoteInteractiveLogonRight,,,,,,,BUILTIN\Guests,=,Medium
+2.2.26,"User Rights Assignment","Deny log on through Remote Desktop Services (Member)",accesschk,SeDenyRemoteInteractiveLogonRight,,,,,,,"BUILTIN\Guests;NT AUTHORITY\Local account",=,Medium
+9.3.5,"Windows Firewall","Apply local firewall rules (Public Profile, Policy)",Registry,,HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\PublicProfile,AllowLocalPolicyMerge,,,,0,0,=,Low
+9.3.6,"Windows Firewall","Apply local connection security rules (Public Profile, Policy)",Registry,,HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\PublicProfile,AllowLocalIPsecPolicyMerge,,,,0,0,=,Low
 18.10.89.1.1,"Administrative Templates: Windows Components","WinRM Client: Allow Basic authentication",Registry,,HKLM:\Software\Policies\Microsoft\Windows\WinRM\Client,AllowBasic,,,,1,0,=,Medium
 18.10.89.1.2,"Administrative Templates: Windows Components","WinRM Client: Allow unencrypted traffic",Registry,,HKLM:\Software\Policies\Microsoft\Windows\WinRM\Client,AllowUnencryptedTraffic,,,,1,0,=,Medium
 18.10.89.2.1,"Administrative Templates: Windows Components","WinRM Service: Allow Basic authentication",Registry,,HKLM:\Software\Policies\Microsoft\Windows\WinRM\Service,AllowBasic,,,,1,0,=,Medium
