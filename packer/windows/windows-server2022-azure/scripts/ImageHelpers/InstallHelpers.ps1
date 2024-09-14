@@ -721,3 +721,516 @@ function Expand-7ZipArchive
         exit 1
     }
 }
+
+function Get-GithubReleasesByVersion {
+    <#
+    .SYNOPSIS
+        Retrieves GitHub releases for a specified repository based on version.
+
+    .DESCRIPTION
+        The function retrieves GitHub releases for a specified repository based on the
+        version provided. It supports filtering by version, allowing for the retrieval
+        of specific releases or the latest release. The function utilizes the GitHub REST API
+        to fetch the releases and caches the results to improve performance and reduce
+        the number of API calls.
+
+    .PARAMETER Repository
+        The name of the GitHub repository in the format "owner/repo".
+
+    .PARAMETER Version
+        The version of the release to retrieve. It can be a specific version number,
+        "latest" to retrieve the latest release, or a wildcard pattern to match multiple versions.
+
+    .PARAMETER AllowPrerelease
+        Specifies whether to include prerelease versions in the results. By default,
+        prerelease versions are excluded.
+
+    .PARAMETER WithAssetsOnly
+        Specifies whether to exclude releases without assets. By default, releases without
+        assets are included.
+
+    .EXAMPLE
+        Get-GithubReleasesByVersion -Repository "Microsoft/PowerShell" -Version "7.2.0"
+
+        Retrieves the GitHub releases for the "Microsoft/PowerShell" repository with the version "7.2.0".
+
+    .EXAMPLE
+        Get-GithubReleasesByVersion -Repository "Microsoft/PowerShell" -Version "latest"
+
+        Retrieves the latest GitHub release for the "Microsoft/PowerShell" repository.
+
+    .EXAMPLE
+        Get-GithubReleasesByVersion -Repository "Microsoft/PowerShell" -Version "7.*"
+
+        Retrieves all GitHub releases for the "Microsoft/PowerShell" repository with versions starting with "7.".
+    #>
+
+    param (
+        [Parameter(Mandatory = $true)]
+        [Alias("Repo")]
+        [string] $Repository,
+        [string] $Version = "*",
+        [switch] $AllowPrerelease,
+        [switch] $WithAssetsOnly
+    )
+
+    $localCacheFile = Join-Path ${env:TEMP} "github-releases_$($Repository -replace "/", "_").json"
+
+    if (Test-Path $localCacheFile) {
+        $releases = Get-Content $localCacheFile | ConvertFrom-Json
+        Write-Debug "Found cached releases for ${Repository} in local file"
+        Write-Debug "Release count: $($releases.Count)"
+    } else {
+        $releases = @()
+        $page = 1
+        $pageSize = 100
+        do {
+            $releasesPage = Invoke-RestMethod -Uri "https://api.github.com/repos/${Repository}/releases?per_page=${pageSize}&page=${page}"
+            $releases += $releasesPage
+            $page++
+        } while ($releasesPage.Count -eq $pageSize)
+
+        Write-Debug "Found $($releases.Count) releases for ${Repository}"
+        Write-Debug "Caching releases for ${Repository} in local file"
+        $releases | ConvertTo-Json -Depth 10 | Set-Content $localCacheFile
+    }
+
+    if (-not $releases) {
+        throw "Failed to get releases from ${Repository}"
+    }
+
+    if ($WithAssetsOnly) {
+        $releases = $releases.Where{ $_.assets }
+    }
+    if (-not $AllowPrerelease) {
+        $releases = $releases.Where{ $_.prerelease -eq $false }
+    }
+    Write-Debug "Found $($releases.Count) releases with assets for ${Repository}"
+
+    # Parse version from tag name and put it to parameter Version
+    foreach ($release in $releases) {
+        $release | Add-Member -MemberType NoteProperty -Name version -Value (
+        $release.tag_name | Select-String -Pattern "\d+.\d+.\d+" | ForEach-Object { $_.Matches.Value }
+        )
+    }
+
+    # Sort releases by version
+    $releases = $releases | Sort-Object -Descending { [version] $_.version }
+
+    # Select releases matching version
+    if ($Version -eq "latest") {
+        $matchingReleases = $releases | Select-Object -First 1
+    } elseif ($Version.Contains("*")) {
+        $matchingReleases = $releases | Where-Object { $_.version -like "$Version" }
+    } else {
+        $matchingReleases = $releases | Where-Object { $_.version -eq "$Version" }
+    }
+
+    if (-not $matchingReleases) {
+        throw "Failed to get releases from ${Repository} matching version `"${Version}`".`nAvailable versions: $($availableVersions -join ", ")"
+    }
+    Write-Debug "Found $($matchingReleases.Count) releases matching version ${Version} for ${Repository}"
+
+    return $matchingReleases
+}
+
+
+function Resolve-GithubReleaseAssetUrl {
+    <#
+    .SYNOPSIS
+        Resolves the download URL for a specific asset in a GitHub release.
+
+    .DESCRIPTION
+        This function retrieves the download URL for a specific asset in a GitHub release.
+        It takes the repository name, version, and a URL match pattern as input parameters.
+        It searches for releases that match the specified version and then looks
+        for a download URL that matches the provided pattern. If a matching URL is found,
+        it returns the URL. If no matching URL is found, an exception is thrown.
+
+    .PARAMETER Repository
+        The name of the GitHub repository in the format "owner/repo".
+
+    .PARAMETER Version
+        The version of the release to retrieve. It can be a specific version number,
+        "latest" to retrieve the latest release, or a wildcard pattern to match multiple versions.
+
+    .PARAMETER AllowPrerelease
+        Specifies whether to include prerelease versions in the results. By default,
+        prerelease versions are excluded.
+
+    .PARAMETER UrlMatchPattern
+        The pattern to match against the download URLs of the release assets.
+        Wildcards (*) can be used to match any characters.
+
+    .PARAMETER AllowMultipleMatches
+        Specifies whether to choose one of multiple assets matching the pattern or consider this behavior to be erroneous.
+        By default, multiple matches are not considered normal behavior and result in an error.
+
+    .EXAMPLE
+        Resolve-GithubReleaseAssetUrl -Repository "myrepo" -Version "1.0" -UrlMatchPattern "*.zip"
+        Retrieves the download URL for the asset in the "myrepo" repository with version "1.0" and a file extension of ".zip".
+
+    #>
+
+    param (
+        [Parameter(Mandatory = $true)]
+        [Alias("Repo")]
+        [string] $Repository,
+        [string] $Version = "*",
+        [switch] $AllowPrerelease,
+        [Parameter(Mandatory = $true)]
+        [Alias("Pattern", "File", "Asset")]
+        [string] $UrlMatchPattern,
+        [switch] $AllowMultipleMatches = $false
+    )
+
+    $matchingReleases = Get-GithubReleasesByVersion `
+        -Repository $Repository `
+        -AllowPrerelease:$AllowPrerelease `
+        -Version $Version `
+        -WithAssetsOnly
+
+    # Add wildcard to the beginning of the pattern if it's not there
+    if ($UrlMatchPattern.Substring(0, 2) -ne "*/") {
+        $UrlMatchPattern = "*/$UrlMatchPattern"
+    }
+
+    # Loop over releases until we find a download url matching the pattern
+    foreach ($release in $matchingReleases) {
+        $matchedVersion = $release.version
+        $matchedUrl = ([string[]] $release.assets.browser_download_url) -like $UrlMatchPattern
+        if ($matchedUrl) {
+            break
+        }
+    }
+
+    if (-not $matchedUrl) {
+        Write-Debug "Found no download urls matching pattern ${UrlMatchPattern}"
+        Write-Debug "Available download urls:`n$($matchingReleases.assets.browser_download_url -join "`n")"
+        throw "No assets found in ${Repository} matching version `"${Version}`" and pattern `"${UrlMatchPattern}`""
+    }
+    # If multiple urls match the pattern, sort them and take the last one
+    # Will only work with simple number series of no more than nine in a row.
+    if ($matchedUrl.Count -gt 1) {
+        if ($AllowMultipleMatches) {
+            Write-Debug "Found multiple download urls matching pattern ${UrlMatchPattern}:`n$($matchedUrl -join "`n")"
+            Write-Host "Performing sorting of urls to find the most recent version matching the pattern"
+            $matchedUrl = $matchedUrl | Sort-Object -Descending
+            $matchedUrl = $matchedUrl[0]
+        } else {
+            throw "Found multiple assets in ${Repository} matching version `"${Version}`" and pattern `"${UrlMatchPattern}`".`nAvailable assets:`n$($matchedUrl -join "`n")"
+        }
+    }
+
+    Write-Host "Found download url for ${Repository} version ${matchedVersion}: ${matchedUrl}"
+
+    return ($matchedUrl -as [string])
+}
+
+function Get-ChecksumFromGithubRelease {
+    <#
+    .SYNOPSIS
+        Retrieves the hash value of a specific file from a GitHub release body.
+
+    .DESCRIPTION
+        The Get-ChecksumFromGithubRelease function retrieves the hash value (SHA256 or SHA512)
+        of a specific file from a GitHub release. It searches for the file in the release body
+        and returns the hash value if found.
+
+    .PARAMETER Repository
+        The name of the GitHub repository in the format "owner/repo".
+
+    .PARAMETER Version
+        The version of the release to inspect. It can be a specific version number,
+        "latest" to retrieve the latest release, or a wildcard pattern to match multiple versions.
+
+    .PARAMETER AllowPrerelease
+        Specifies whether to include prerelease versions in the results. By default,
+        prerelease versions are excluded.
+
+    .PARAMETER FileName
+        The name of the file to retrieve the hash value for.
+
+    .PARAMETER HashType
+        The type of hash value to retrieve. Valid values are "SHA256" and "SHA512".
+
+    .EXAMPLE
+        Get-ChecksumFromGithubRelease -Repository "MyRepo" -FileName "myfile.txt" -HashType "SHA256"
+
+        Retrieves the SHA256 hash value of "myfile.txt" from the latest release of the "MyRepo" repository.
+
+    .EXAMPLE
+        Get-ChecksumFromGithubRelease -Repository "MyRepo" -Version "1.0" -FileName "myfile.txt" -HashType "SHA512"
+
+        Retrieves the SHA512 hash value of "myfile.txt" from the release version "1.0" of the "MyRepo" repository.
+    #>
+
+    param (
+        [Parameter(Mandatory = $true)]
+        [Alias("Repo")]
+        [string] $Repository,
+        [string] $Version = "*",
+        [switch] $AllowPrerelease,
+        [Parameter(Mandatory = $true)]
+        [Alias("File", "Asset")]
+        [string] $FileName,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("SHA256", "SHA512")]
+        [string] $HashType
+    )
+
+    $matchingReleases = Get-GithubReleasesByVersion `
+        -Repository $Repository `
+        -AllowPrerelease:$AllowPrerelease `
+        -Version $Version `
+        -WithAssetsOnly
+
+    foreach ($release in $matchingReleases) {
+        $matchedVersion = $release.version
+        $matchedBody = $release.body
+        $matchedLine = $matchedBody.Split("`n") | Where-Object { $_ -like "*$FileName*" }
+        if ($matchedLine.Count -gt 1) {
+            throw "Found multiple lines matching file name '${FileName}' in body of release ${matchedVersion}."
+        } elseif ($matchedLine.Count -ne 0) {
+            break
+        }
+    }
+    if (-not $matchedLine) {
+        throw "File name '${FileName}' not found in release body."
+    }
+    Write-Debug "Found line matching file name '${FileName}' in body of release ${matchedVersion}:`n${matchedLine}"
+
+    if ($HashType -eq "SHA256") {
+        $pattern = "[A-Fa-f0-9]{64}"
+    } elseif ($HashType -eq "SHA512") {
+        $pattern = "[A-Fa-f0-9]{128}"
+    } else {
+        throw "Unknown hash type: ${HashType}"
+    }
+
+    $hash = $matchedLine | Select-String -Pattern $pattern | ForEach-Object { $_.Matches.Value }
+
+    if ([string]::IsNullOrEmpty($hash)) {
+        throw "Found '${FileName}' in body of release ${matchedVersion}, but failed to get hash from it.`nLine: ${matchedLine}"
+    }
+    Write-Host "Found hash for ${FileName} in release ${matchedVersion}: $hash"
+
+    return $hash
+}
+
+function Get-ChecksumFromUrl {
+    <#
+    .SYNOPSIS
+        Retrieves the checksum hash for a file from a given URL.
+
+    .DESCRIPTION
+        The Get-ChecksumFromUrl function retrieves the checksum hash for a specified file
+        from a given URL. It supports SHA256 and SHA512 hash types.
+
+    .PARAMETER Url
+        The URL of the checksum file.
+
+    .PARAMETER FileName
+        The name of the file to retrieve the checksum hash for.
+
+    .PARAMETER HashType
+        The type of hash to retrieve. Valid values are "SHA256" and "SHA512".
+
+    .EXAMPLE
+        Get-ChecksumFromUrl -Url "https://example.com/checksums.txt" -FileName "file.txt" -HashType "SHA256"
+        Retrieves the SHA256 checksum hash for the file "file.txt" from the URL "https://example.com/checksums.txt".
+    #>
+
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $Url,
+        [Parameter(Mandatory = $true)]
+        [Alias("File", "Asset")]
+        [string] $FileName,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("SHA256", "SHA512")]
+        [Alias("Type")]
+        [string] $HashType
+    )
+
+    $tempFile = Join-Path -Path $env:TEMP -ChildPath ([System.IO.Path]::GetRandomFileName())
+    $checksums = (Invoke-DownloadWithRetry -Url $Url -Path $tempFile | Get-Item | Get-Content) -as [string[]]
+    Remove-Item -Path $tempFile
+
+    $matchedLine = $checksums | Where-Object { $_ -like "*$FileName*" }
+    if ($matchedLine.Count -gt 1) {
+        throw "Found multiple lines matching file name '${FileName}' in checksum file."
+    } elseif ($matchedLine.Count -eq 0) {
+        throw "File name '${FileName}' not found in checksum file."
+    }
+
+    if ($HashType -eq "SHA256") {
+        $pattern = "[A-Fa-f0-9]{64}"
+    } elseif ($HashType -eq "SHA512") {
+        $pattern = "[A-Fa-f0-9]{128}"
+    } else {
+        throw "Unknown hash type: ${HashType}"
+    }
+    Write-Debug "Found line matching file name '${FileName}' in checksum file:`n${matchedLine}"
+
+    $hash = $matchedLine | Select-String -Pattern $pattern | ForEach-Object { $_.Matches.Value }
+    if ([string]::IsNullOrEmpty($hash)) {
+        throw "Found '${FileName}' in checksum file, but failed to get hash from it.`nLine: ${matchedLine}"
+    }
+    Write-Host "Found hash for ${FileName} in checksum file: $hash"
+
+    return $hash
+}
+
+function Test-FileChecksum {
+    <#
+    .SYNOPSIS
+        Verifies the checksum of a file.
+
+    .DESCRIPTION
+        The Test-FileChecksum function verifies the SHA256 or SHA512 checksum of a file against an expected value.
+        If the checksum does not match the expected value, the function throws an error.
+
+    .PARAMETER Path
+        The path to the file for which to verify the checksum.
+
+    .PARAMETER ExpectedSHA256Sum
+        The expected SHA256 checksum. If this parameter is provided, the function will calculate the SHA256 checksum of the file and compare it to this value.
+
+    .PARAMETER ExpectedSHA512Sum
+        The expected SHA512 checksum. If this parameter is provided, the function will calculate the SHA512 checksum of the file and compare it to this value.
+
+    .EXAMPLE
+        Test-FileChecksum -Path "C:\temp\file.txt" -ExpectedSHA256Sum "ABC123"
+
+        Verifies that the SHA256 checksum of the file at C:\temp\file.txt is ABC123.
+
+    .EXAMPLE
+        Test-FileChecksum -Path "C:\temp\file.txt" -ExpectedSHA512Sum "DEF456"
+
+        Verifies that the SHA512 checksum of the file at C:\temp\file.txt is DEF456.
+
+    #>
+
+    param (
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string] $Path,
+        [Parameter(Mandatory = $false)]
+        [String] $ExpectedSHA256Sum,
+        [Parameter(Mandatory = $false)]
+        [String] $ExpectedSHA512Sum
+    )
+
+    Write-Verbose "Performing checksum verification"
+
+    if ($ExpectedSHA256Sum -and $ExpectedSHA512Sum) {
+        throw "Only one of the ExpectedSHA256Sum and ExpectedSHA512Sum parameters can be provided"
+    }
+
+    if (-not (Test-Path $Path)) {
+        throw "File not found: $Path"
+    }
+
+    if ($ExpectedSHA256Sum) {
+        $fileHash = (Get-FileHash -Path $Path -Algorithm SHA256).Hash
+        $expectedHash = $ExpectedSHA256Sum
+    }
+
+    if ($ExpectedSHA512Sum) {
+        $fileHash = (Get-FileHash -Path $Path -Algorithm SHA512).Hash
+        $expectedHash = $ExpectedSHA512Sum
+    }
+
+    if ($fileHash -ne $expectedHash) {
+        throw "Checksum verification failed: expected $expectedHash, got $fileHash"
+    } else {
+        Write-Verbose "Checksum verification passed"
+    }
+}
+
+function Test-FileSignature {
+    <#
+    .SYNOPSIS
+        Tests the file signature of a given file.
+
+    .DESCRIPTION
+        The Test-FileSignature function checks the signature of a file against the expected thumbprints.
+        It uses the Get-AuthenticodeSignature cmdlet to retrieve the signature information of the file.
+        If the signature status is not valid or the thumbprint does not match the expected thumbprints, an exception is thrown.
+
+    .PARAMETER Path
+        Specifies the path of the file to test.
+
+    .PARAMETER ExpectedThumbprint
+        Specifies the expected thumbprints to match against the file's signature.
+
+    .EXAMPLE
+        Test-FileSignature -Path "C:\Path\To\File.exe" -ExpectedThumbprint "A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0"
+
+        This example tests the signature of the file "C:\Path\To\File.exe" against the expected thumbprint "A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0".
+
+    #>
+
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string] $Path,
+        [Parameter(Mandatory = $true)]
+        [string[]] $ExpectedThumbprint
+    )
+
+    $signature = Get-AuthenticodeSignature $Path
+
+    if ($signature.Status -ne "Valid") {
+        throw "Signature status is not valid. Status: $($signature.Status)"
+    }
+
+    foreach ($thumbprint in $ExpectedThumbprint) {
+        if ($signature.SignerCertificate.Thumbprint.Contains($thumbprint)) {
+            Write-Output "Signature for $Path is valid"
+            $signatureMatched = $true
+            return
+        }
+    }
+
+    if ($signatureMatched) {
+        Write-Output "Signature for $Path is valid"
+    } else {
+        throw "Signature thumbprint do not match expected."
+    }
+}
+
+function Update-Environment {
+    <#
+    .SYNOPSIS
+        Updates the environment variables by reading values from the registry.
+
+    .DESCRIPTION
+        This function updates current environment by reading values from the registry.
+        It is useful when you need to update the environment variables without restarting the current session.
+
+    .NOTES
+        The function requires administrative privileges to modify the system registry.
+    #>
+
+    $locations = @(
+        'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+        'HKCU:\Environment'
+    )
+
+    # Update PATH variable
+    $pathItems = $locations | ForEach-Object {
+        (Get-Item $_).GetValue('PATH').Split(';')
+    } | Select-Object -Unique
+    $env:PATH = $pathItems -join ';'
+
+    # Update other variables
+    $locations | ForEach-Object {
+        $key = Get-Item $_
+        foreach ($name in $key.GetValueNames()) {
+            $value = $key.GetValue($name)
+            if (-not ($name -ieq 'PATH')) {
+                Set-Item -Path Env:$name -Value $value
+            }
+        }
+    }
+}

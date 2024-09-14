@@ -25,6 +25,13 @@ Export-ModuleMember -Function @(
     'Get-ToolsetContent'
     'Get-ToolsetToolFullPath'
     'Invoke-ScriptBlockWithRetry'
+    'Get-GithubReleasesByVersion'
+    'Resolve-GithubReleaseAssetUrl'
+    'Get-ChecksumFromGithubRelease'
+    'Get-ChecksumFromUrl'
+    'Test-FileChecksum'
+    'Test-FileSignature'
+    'Update-Environment'
     'Get-ToolsetContent'
     'Invoke-DownloadWithRetry'
     'Expand-7ZipArchive',
