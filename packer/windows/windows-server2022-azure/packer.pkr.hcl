@@ -46,7 +46,7 @@ variable "install_user" {
 
 variable "deploy_gui" {
   type        = bool
-  default     = false
+  default     = true
   description = "Whether to deploy a Windows Server with or without a GUI"
 }
 
@@ -234,6 +234,9 @@ build {
       "${path.root}/scripts/Installers/Install-HardeningKitty.ps1",
       "${path.root}/scripts/Installers/Initialize-VM.ps1",
       "${path.root}/scripts/Installers/Update-ImageData.ps1",
+      "${path.root}/scripts/Installers/Install-Docker.ps1",
+      "${path.root}/scripts/Installers/Install-DockerCompose.ps1",
+      "${path.root}/scripts/Installers/Install-DockerWinCred.ps1",
     ]
   }
 
@@ -246,6 +249,23 @@ build {
     scripts = [
       "${path.root}/scripts/Installers/Install-RootCA.ps1",
       "${path.root}/scripts/Installers/Disable-JITDebugger.ps1",
+    ]
+  }
+
+  provisioner "powershell" {
+    environment_vars = [
+      "IMAGE_VERSION=${local.image_version}",
+      "IMAGE_OS=${local.image_os}",
+      "AGENT_TOOLSDIRECTORY=${var.agent_tools_directory}",
+      "IMAGE_FOLDER=${var.image_folder}",
+      "IMAGEDATA_FILE=${var.imagedata_file}",
+      "BUILD_WITH_GUI=${local.deploy_gui}"
+    ]
+    execution_policy = "unrestricted"
+    scripts = [
+      "${path.root}/scripts/Installers/Install-Docker.ps1",
+      "${path.root}/scripts/Installers/Install-DockerCompose.ps1",
+      "${path.root}/scripts/Installers/Install-DockerWinCred.ps1",
     ]
   }
 

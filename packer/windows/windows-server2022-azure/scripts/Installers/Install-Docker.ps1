@@ -40,3 +40,5 @@ if ($LastExitCode -ne 0) {
 # cli.azure.cli.command_modules.acr.custom: Could not run 'docker.exe' command.
 # https://github.com/Azure/azure-cli/issues/18766
 New-Item -ItemType SymbolicLink -Path "C:\Windows\SysWOW64\docker.exe" -Target "C:\Windows\System32\docker.exe"
+
+Invoke-PesterTests -TestFile "Docker" -TestName "Docker"
