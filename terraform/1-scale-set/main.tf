@@ -13,25 +13,27 @@ locals {
 module "subnet_calculator" {
   source = "libre-devops/subnet-calculator/null"
 
-  base_cidr    = local.lookup_cidr[var.short][var.env][0]
+  base_cidr = local.lookup_cidr[var.short][var.env][0]
   subnet_sizes = [26, 26]
 }
 
-#module "bastion" {
-#  source = "libre-devops/bastion/azurerm"
-#
-#  rg_name  = data.azurerm_resource_group.rg.name
-#  location = data.azurerm_resource_group.rg.location
-#  tags     = data.azurerm_resource_group.rg.tags
-#
-#  bastion_host_name                  = "bst-${var.short}-${var.loc}-${var.env}-01"
-#  create_bastion_nsg                 = true
-#  create_bastion_nsg_rules           = true
-#  create_bastion_subnet              = true
-#  bastion_subnet_target_vnet_name    = data.azurerm_virtual_network.vnet.name
-#  bastion_subnet_target_vnet_rg_name = data.azurerm_virtual_network.vnet.resource_group_name
-#  bastion_subnet_range               = module.subnet_calculator.subnet_ranges[1]
-#}
+module "bastion" {
+  source = "libre-devops/bastion/azurerm"
+
+  rg_name  = data.azurerm_resource_group.rg.name
+  location = data.azurerm_resource_group.rg.location
+  tags     = data.azurerm_resource_group.rg.tags
+
+  bastion_host_name                  = "bst-${var.short}-${var.loc}-${var.env}-01"
+  bastion_sku                        = "Developer"
+  virtual_network_id                 = data.azurerm_virtual_network.vnet.id
+  create_bastion_nsg                 = false
+  create_bastion_nsg_rules           = false
+  create_bastion_subnet              = false
+  bastion_subnet_target_vnet_name    = data.azurerm_virtual_network.vnet.name
+  bastion_subnet_target_vnet_rg_name = data.azurerm_virtual_network.vnet.resource_group_name
+  bastion_subnet_range               = module.subnet_calculator.subnet_ranges[1]
+}
 
 locals {
   name = "vmss${var.short}${var.loc}${var.env}01"
@@ -72,14 +74,14 @@ module "windows_vm_scale_set" {
       use_custom_image                = true
       custom_source_image_id          = data.azurerm_shared_image.azdo_win_image.id
       disable_password_authentication = true
-      overprovision                   = false    # Azure DevOps will set overprovision to false
-      upgrade_mode                    = "Manual" # Azure DevOps will set to Manual anyway
-      single_placement_group          = false    # Must be disabled for Azure DevOps or will fail
+      overprovision = false    # Azure DevOps will set overprovision to false
+      upgrade_mode = "Manual" # Azure DevOps will set to Manual anyway
+      single_placement_group = false    # Must be disabled for Azure DevOps or will fail
       enable_automatic_updates        = true
       create_asg                      = true
 
       identity_type = "SystemAssigned, UserAssigned"
-      identity_ids  = [module.azdo_spn.user_assigned_managed_identity_id]
+      identity_ids = [module.azdo_spn.user_assigned_managed_identity_id]
       network_interface = [
         {
           name                          = "nic-${local.name}"
@@ -87,9 +89,9 @@ module "windows_vm_scale_set" {
           enable_accelerated_networking = false
           ip_configuration = [
             {
-              name                           = "ipconfig-${local.name}"
-              primary                        = true
-              subnet_id                      = data.azurerm_subnet.subnet1.id
+              name      = "ipconfig-${local.name}"
+              primary   = true
+              subnet_id = data.azurerm_subnet.subnet1.id
               application_security_group_ids = []
             }
           ]
