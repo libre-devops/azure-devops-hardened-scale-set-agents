@@ -90,7 +90,7 @@
         { "name": "HypervisorPlatform", "optionalFeature": true },
         { "name": "Hyper-V-PowerShell" }
     ],
-    "pipx": [
+    "pip": [
         {
             "package": "checkov",
             "cmd": "checkov"

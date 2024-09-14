@@ -230,7 +230,7 @@ build {
       "${path.root}/scripts/Installers/Install-CommonUtils.ps1",
       "${path.root}/scripts/Installers/Install-Toolset.ps1",
       "${path.root}/scripts/Installers/Configure-Toolset.ps1",
-      "${path.root}/scripts/Installers/Install-Pipx.ps1",
+      "${path.root}/scripts/Installers/Install-PipPackages.ps1",
       "${path.root}/scripts/Installers/Install-HardeningKitty.ps1",
       "${path.root}/scripts/Installers/Initialize-VM.ps1",
       "${path.root}/scripts/Installers/Update-ImageData.ps1",
