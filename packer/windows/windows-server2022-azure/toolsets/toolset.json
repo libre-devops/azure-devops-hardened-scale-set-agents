@@ -93,7 +93,7 @@
     "pip": [
         {
             "package": "checkov",
-            "cmd": "checkov"
+            "cmd": "checkov --version"
         }
     ]
 }
