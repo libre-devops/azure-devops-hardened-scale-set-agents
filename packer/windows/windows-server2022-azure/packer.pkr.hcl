@@ -237,6 +237,30 @@ build {
     ]
   }
 
+
+  provisioner "windows-restart" {
+    restart_timeout = "10m"
+  }
+
+  provisioner "powershell" {
+    scripts = [
+      "${path.root}/scripts/Installers/Install-RootCA.ps1",
+      "${path.root}/scripts/Installers/Disable-JITDebugger.ps1",
+    ]
+  }
+
+  provisioner "powershell" {
+    elevated_password = "${var.install_password}"
+    elevated_user     = "${var.install_user}"
+    scripts = ["${path.root}/scripts/Installers/Install-WindowsUpdates.ps1"]
+  }
+
+  provisioner "windows-restart" {
+    check_registry        = true
+    restart_check_command = "powershell -command \"& {if ((-not (Get-Process TiWorker.exe -ErrorAction SilentlyContinue)) -and (-not [System.Environment]::HasShutdownStarted) ) { Write-Output 'Restart complete' }}\""
+    restart_timeout       = "30m"
+  }
+
   provisioner "powershell" {
     inline = [
       "Write-Output 'Checking if the CSV file exists at the expected path...'",
@@ -273,29 +297,6 @@ build {
   }
 
 
-  provisioner "windows-restart" {
-    restart_timeout = "10m"
-  }
-
-  provisioner "powershell" {
-    scripts = [
-      "${path.root}/scripts/Installers/Install-RootCA.ps1",
-      "${path.root}/scripts/Installers/Disable-JITDebugger.ps1",
-    ]
-  }
-
-  provisioner "powershell" {
-    elevated_password = "${var.install_password}"
-    elevated_user     = "${var.install_user}"
-    scripts = ["${path.root}/scripts/Installers/Install-WindowsUpdates.ps1"]
-  }
-
-  provisioner "windows-restart" {
-    check_registry        = true
-    restart_check_command = "powershell -command \"& {if ((-not (Get-Process TiWorker.exe -ErrorAction SilentlyContinue)) -and (-not [System.Environment]::HasShutdownStarted) ) { Write-Output 'Restart complete' }}\""
-    restart_timeout       = "30m"
-  }
-
   provisioner "powershell" {
     environment_vars = [
       "IMAGE_VERSION=${local.image_version}",
@@ -310,6 +311,10 @@ build {
       "${path.root}/scripts/Installers/Wait-WindowsUpdatesForInstall.ps1",
       "${path.root}/scripts/Tests/RunAll-Tests.ps1"
     ]
+  }
+
+  provisioner "windows-restart" {
+    restart_timeout = "10m"
   }
 
   provisioner "powershell" {
