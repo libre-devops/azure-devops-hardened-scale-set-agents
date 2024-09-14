@@ -52,7 +52,7 @@ module "azdo_spn" {
 
 
 module "windows_vm_scale_set" {
-  source = "libre-devops/windows-uniform-orchestration-vm-scale-sets/azurerm"
+  source = "github.com/libre-devops/terraform-azurerm-windows-uniform-orchestration-vm-scale-sets"
 
   rg_name  = data.azurerm_resource_group.rg.name
   location = data.azurerm_resource_group.rg.location
