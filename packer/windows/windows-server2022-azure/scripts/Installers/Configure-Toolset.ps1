@@ -50,5 +50,3 @@ foreach ($tool in $tools) {
         }
     }
 }
-
-Invoke-PesterTests -TestFile "Toolset"
