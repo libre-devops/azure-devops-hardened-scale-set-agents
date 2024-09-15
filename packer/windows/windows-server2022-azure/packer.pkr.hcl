@@ -113,12 +113,13 @@ source "azure-arm" "build" {
   image_publisher           = "MicrosoftWindowsServer"
   image_offer               = "WindowsServer"
   image_sku                 = local.deploy_gui == true ? "2022-datacenter-azure-edition-hotpatch" : "2022-datacenter-azure-edition-core"
-  vm_size                   = "Standard_D4s_v4"
+  vm_size                   = "Standard_D4ds_v5"
   communicator              = "winrm"
   winrm_insecure            = "true"
   winrm_use_ssl             = "true"
   winrm_username            = "packer"
   winrm_timeout             = "15m"
+  security_type             = "TrustedLaunch"
 
   user_assigned_managed_identities = [
     "/subscriptions/${var.subscription_id}/resourcegroups/${local.gallery_rg_name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/${local.managed_identity_name}"
