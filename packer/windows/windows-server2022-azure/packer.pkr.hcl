@@ -232,40 +232,6 @@ build {
       "${path.root}/scripts/Installers/Configure-Toolset.ps1",
       "${path.root}/scripts/Installers/Install-PipPackages.ps1",
       "${path.root}/scripts/Installers/Install-HardeningKitty.ps1",
-      "${path.root}/scripts/Installers/Initialize-VM.ps1",
-      "${path.root}/scripts/Installers/Update-ImageData.ps1",
-      "${path.root}/scripts/Installers/Install-Docker.ps1",
-      "${path.root}/scripts/Installers/Install-DockerCompose.ps1",
-      "${path.root}/scripts/Installers/Install-DockerWinCred.ps1",
-    ]
-  }
-
-
-  provisioner "windows-restart" {
-    check_registry        = true
-    restart_check_command = "powershell -command \"& {while ( (Get-WindowsOptionalFeature -Online -FeatureName Containers -ErrorAction SilentlyContinue).State -ne 'Enabled' ) { Start-Sleep 30; Write-Output 'InProgress' }}\""
-    restart_timeout       = "10m"
-  }
-
-  provisioner "powershell" {
-    environment_vars = [
-      "IMAGE_VERSION=${local.image_version}",
-      "IMAGE_OS=${local.image_os}",
-      "AGENT_TOOLSDIRECTORY=${var.agent_tools_directory}",
-      "IMAGE_FOLDER=${var.image_folder}",
-      "IMAGEDATA_FILE=${var.imagedata_file}",
-      "BUILD_WITH_GUI=${local.deploy_gui}"
-    ]
-    execution_policy = "unrestricted"
-    scripts = [
-      "${path.root}/scripts/Installers/Configure-Antivirus.ps1",
-      "${path.root}/scripts/Installers/Install-PowerShellModules.ps1",
-      "${path.root}/scripts/Installers/Install-Choco.ps1",
-      "${path.root}/scripts/Installers/Install-CommonUtils.ps1",
-      "${path.root}/scripts/Installers/Install-Toolset.ps1",
-      "${path.root}/scripts/Installers/Configure-Toolset.ps1",
-      "${path.root}/scripts/Installers/Install-PipPackages.ps1",
-      "${path.root}/scripts/Installers/Install-HardeningKitty.ps1",
       "${path.root}/scripts/Installers/Install-WindowsFeatures.ps1",
       "${path.root}/scripts/Installers/Initialize-VM.ps1",
       "${path.root}/scripts/Installers/Update-ImageData.ps1"
@@ -320,18 +286,6 @@ build {
     check_registry        = true
     restart_check_command = "powershell -command \"& {if ((-not (Get-Process TiWorker.exe -ErrorAction SilentlyContinue)) -and (-not [System.Environment]::HasShutdownStarted) ) { Write-Output 'Restart complete' }}\""
     restart_timeout       = "30m"
-  }
-
-  provisioner "powershell" {
-    inline = [
-      "Write-Output 'Checking if the CSV file exists at the expected path...'",
-      "if (Test-Path 'C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv') {",
-      "  Write-Output 'CSV file found: C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv'",
-      "} else {",
-      "  Write-Error 'CSV file not found: C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv'",
-      "  exit 1",
-      "}"
-    ]
   }
 
   provisioner "powershell" {
