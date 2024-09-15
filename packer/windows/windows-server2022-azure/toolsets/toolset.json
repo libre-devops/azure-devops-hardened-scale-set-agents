@@ -91,7 +91,9 @@
         { "name": "VirtualMachinePlatform", "optionalFeature": true },
         { "name": "Hyper-V", "includeAllSubFeatures": true },
         { "name": "HypervisorPlatform", "optionalFeature": true },
-        { "name": "Hyper-V-PowerShell" }
+        { "name": "Hyper-V-PowerShell" },
+        { "name": "Wireless-Networking" }
+
     ],
     "pip": [
         {

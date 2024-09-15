@@ -242,14 +242,44 @@ build {
 
 
   provisioner "windows-restart" {
-    restart_timeout = "10m"
+    check_registry        = true
+    restart_check_command = "powershell -command \"& {while ( (Get-WindowsOptionalFeature -Online -FeatureName Containers -ErrorAction SilentlyContinue).State -ne 'Enabled' ) { Start-Sleep 30; Write-Output 'InProgress' }}\""
+    restart_timeout       = "10m"
   }
 
   provisioner "powershell" {
-    scripts = [
-      "${path.root}/scripts/Installers/Install-RootCA.ps1",
-      "${path.root}/scripts/Installers/Disable-JITDebugger.ps1",
+    environment_vars = [
+      "IMAGE_VERSION=${local.image_version}",
+      "IMAGE_OS=${local.image_os}",
+      "AGENT_TOOLSDIRECTORY=${var.agent_tools_directory}",
+      "IMAGE_FOLDER=${var.image_folder}",
+      "IMAGEDATA_FILE=${var.imagedata_file}",
+      "BUILD_WITH_GUI=${local.deploy_gui}"
     ]
+    execution_policy = "unrestricted"
+    scripts = [
+      "${path.root}/scripts/Installers/Configure-Antivirus.ps1",
+      "${path.root}/scripts/Installers/Install-PowerShellModules.ps1",
+      "${path.root}/scripts/Installers/Install-Choco.ps1",
+      "${path.root}/scripts/Installers/Install-CommonUtils.ps1",
+      "${path.root}/scripts/Installers/Install-Toolset.ps1",
+      "${path.root}/scripts/Installers/Configure-Toolset.ps1",
+      "${path.root}/scripts/Installers/Install-PipPackages.ps1",
+      "${path.root}/scripts/Installers/Install-HardeningKitty.ps1",
+      "${path.root}/scripts/Installers/Install-WindowsFeatures.ps1",
+      "${path.root}/scripts/Installers/Initialize-VM.ps1",
+      "${path.root}/scripts/Installers/Update-ImageData.ps1"
+    ]
+  }
+
+  provisioner "windows-restart" {
+    check_registry        = true
+    restart_check_command = "powershell -command \"& {while ( (Get-WindowsOptionalFeature -Online -FeatureName Containers -ErrorAction SilentlyContinue).State -ne 'Enabled' ) { Start-Sleep 30; Write-Output 'InProgress' }}\""
+    restart_timeout       = "10m"
+  }
+
+  provisioner "powershell" {
+    inline = ["Set-Service -Name wlansvc -StartupType Manual", "if ($(Get-Service -Name wlansvc).Status -eq 'Running') { Stop-Service -Name wlansvc}"]
   }
 
   provisioner "powershell" {
@@ -266,6 +296,17 @@ build {
       "${path.root}/scripts/Installers/Install-Docker.ps1",
       "${path.root}/scripts/Installers/Install-DockerCompose.ps1",
       "${path.root}/scripts/Installers/Install-DockerWinCred.ps1",
+    ]
+  }
+
+  provisioner "windows-restart" {
+    restart_timeout = "30m"
+  }
+
+  provisioner "powershell" {
+    scripts = [
+      "${path.root}/scripts/Installers/Install-RootCA.ps1",
+      "${path.root}/scripts/Installers/Disable-JITDebugger.ps1",
     ]
   }
 

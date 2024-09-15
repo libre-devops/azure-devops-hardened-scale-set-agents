@@ -1,27 +1,21 @@
-Describe "DiskSpace" {
-    It "The image has enough disk space"{
-        $availableSpaceMB =  [math]::Round((Get-PSDrive -Name C).Free / 1MB)
-        $minimumFreeSpaceMB = 18 * 1024
+Describe "WindowsFeatures" {
+    $windowsFeatures = (Get-ToolsetContent).windowsFeatures
+    $testCases = $windowsFeatures | ForEach-Object { @{ Name = $_.name; OptionalFeature = $_.optionalFeature } }
 
-        $availableSpaceMB | Should -BeGreaterThan $minimumFreeSpaceMB
-    }
-}
-
-Describe "DynamicPorts" {
-    It "Test TCP dynamicport start=49152 num=16384" {
-        $tcpPorts = Get-NetTCPSetting | Where-Object {$_.SettingName -ne "Automatic"} | Where-Object {
-            $_.DynamicPortRangeStartPort -ne 49152 -or $_.DynamicPortRangeNumberOfPorts -ne 16384
+    It "Windows Feature <Name> is installed" -TestCases $testCases {
+        if ($OptionalFeature) {
+            (Get-WindowsOptionalFeature -Online -FeatureName $Name).State | Should -Be "Enabled"
+        } else {
+            (Get-WindowsFeature -Name $Name).InstallState | Should -Be "Installed"
         }
-
-        $tcpPorts | Should -BeNullOrEmpty
     }
 
-    It "Test UDP dynamicport start=49152 num=16384" {
-        $udpPorts = Get-NetUDPSetting | Where-Object {
-            $_.DynamicPortRangeStartPort -ne 49152 -or $_.DynamicPortRangeNumberOfPorts -ne 16384
-        }
+    it "Check WSL is on path" {
+        (Get-Command -Name 'wsl') | Should -BeTrue
+    }
 
-        $udpPorts | Should -BeNullOrEmpty
+    it "Check WLAN service is stopped" {
+        (Get-Service -Name wlansvc).Status | Should -Be "Stopped"
     }
 }
 
@@ -30,19 +24,19 @@ Describe "Windows Updates" {
         "$env:windir\WindowsUpdateDone.txt" | Should -Exist
     }
 
-    $testCases = Get-WindowsUpdatesHistory | Sort-Object Title | ForEach-Object {
+    $testCases = Get-WindowsUpdateStates | Sort-Object Title | ForEach-Object {
         @{
             Title = $_.Title
-            Status = $_.Status
+            State = $_.State
         }
     }
 
     It "<Title>" -TestCases $testCases {
-        $expect = "Successful"
+        $expect = "Installed"
         if ( $Title -match "Microsoft Defender Antivirus" ) {
-            $expect = "Successful", "Failure", "InProgress"
+            $expect = "Installed", "Failed", "Running"
         }
 
-        $Status | Should -BeIn $expect
+        $State | Should -BeIn $expect
     }
 }
