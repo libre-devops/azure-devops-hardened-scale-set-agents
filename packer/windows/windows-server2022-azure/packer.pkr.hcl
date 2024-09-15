@@ -323,7 +323,6 @@ build {
     ]
     pause_before = "2m0s"
     scripts = [
-      "${path.root}/scripts/Installers/Wait-WindowsUpdatesForInstall.ps1",
       "${path.root}/scripts/Tests/RunAll-Tests.ps1"
     ]
   }
