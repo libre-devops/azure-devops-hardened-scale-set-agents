@@ -16,9 +16,6 @@ ID,Category,Name,Method,MethodArgument,RegistryPath,RegistryItem,ClassName,Names
 2.2.4,"User Rights Assignment","Act as part of the operating system",accesschk,SeTcbPrivilege,,,,,,,,=,Medium
 2.2.5,"User Rights Assignment","Add workstations to domain (DC)",accesschk,SeMachineAccountPrivilege,,,,,,"NT AUTHORITY\Authenticated Users",BUILTIN\Administrators,=,Medium
 2.2.6,"User Rights Assignment","Adjust memory quotas for a process",accesschk,SeIncreaseQuotaPrivilege,,,,,,"BUILTIN\Administrators;NT AUTHORITY\NETWORK SERVICE;NT AUTHORITY\LOCAL SERVICE","BUILTIN\Administrators;NT AUTHORITY\NETWORK SERVICE;NT AUTHORITY\LOCAL SERVICE",=,Medium
-2.2.7,"User Rights Assignment","Allow log on locally",accesschk,SeInteractiveLogonRight,,,,,,"BUILTIN\Backup Operators;BUILTIN\Users;BUILTIN\Administrators;COMPUTERNAME\Guest",BUILTIN\Administrators,=,Medium
-2.2.8,"User Rights Assignment","Allow log on through Remote Desktop Services (DC)",accesschk,SeRemoteInteractiveLogonRight,,,,,,BUILTIN\Administrators,BUILTIN\Administrators,=,Medium
-2.2.9,"User Rights Assignment","Allow log on through Remote Desktop Services (Member)",accesschk,SeRemoteInteractiveLogonRight,,,,,,"BUILTIN\Remote Desktop Users;BUILTIN\Administrators","BUILTIN\Remote Desktop Users;BUILTIN\Administrators",=,Medium
 2.2.10,"User Rights Assignment","Back up files and directories",accesschk,SeBackupPrivilege,,,,,,"BUILTIN\Administrators;BUILTIN\Backup Operators",BUILTIN\Administrators,=,Medium
 2.2.11,"User Rights Assignment","Change the system time",accesschk,SeSystemTimePrivilege,,,,,,"BUILTIN\Administrators;NT AUTHORITY\LOCAL SERVICE","BUILTIN\Administrators;NT AUTHORITY\LOCAL SERVICE",=,Medium
 2.2.12,"User Rights Assignment","Change the time zone",accesschk,SeTimeZonePrivilege,,,,,,"BUILTIN\Device Owners;BUILTIN\Users;BUILTIN\Administrators;NT AUTHORITY\LOCAL SERVICE","BUILTIN\Administrators;NT AUTHORITY\LOCAL SERVICE",=,Medium
@@ -80,7 +77,6 @@ ID,Category,Name,Method,MethodArgument,RegistryPath,RegistryItem,ClassName,Names
 2.3.7.6,"Security Options","Interactive logon: Number of previous logons to cache (in case domain controller is not available)",Registry,,"HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",CachedLogonsCount,,,,10,4,<=,Medium
 2.3.7.7.1,"Security Options","Interactive logon: Prompt user to change password before expiration (Max)",Registry,,HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System,PasswordExpiryWarning,,,,5,14,<=,Low
 2.3.7.7.2,"Security Options","Interactive logon: Prompt user to change password before expiration (Min)",Registry,,HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System,PasswordExpiryWarning,,,,5,5,>=,Low
-2.3.7.8,"Security Options","Interactive logon: Require Domain Controller Authentication to unlock workstation (Member)",Registry,,"HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon",ForceUnlockLogon,,,,0,1,=,Medium
 2.3.7.9,"Security Options","Interactive logon: Smart card removal behavior",Registry,,"HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon",ScRemoveOption,,,,0,1,=,Medium
 2.3.8.1,"Security Options","Microsoft network client: Digitally sign communications (always)",Registry,,HKLM:\System\CurrentControlSet\Services\LanmanWorkstation\Parameters,RequireSecuritySignature,,,,0,1,=,Medium
 2.3.8.2,"Security Options","Microsoft network client: Digitally sign communications (if server agrees)",Registry,,HKLM:\System\CurrentControlSet\Services\LanmanWorkstation\Parameters,EnableSecuritySignature,,,,1,1,=,Medium
