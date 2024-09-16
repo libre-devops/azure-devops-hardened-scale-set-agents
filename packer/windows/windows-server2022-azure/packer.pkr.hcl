@@ -255,12 +255,6 @@ build {
     scripts = ["${path.root}/scripts/Installers/Install-WindowsUpdates.ps1"]
   }
 
-  provisioner "windows-restart" {
-    check_registry        = true
-    restart_check_command = "powershell -command \"& {if ((-not (Get-Process TiWorker.exe -ErrorAction SilentlyContinue)) -and (-not [System.Environment]::HasShutdownStarted) ) { Write-Output 'Restart complete' }}\""
-    restart_timeout       = "30m"
-  }
-
   provisioner "powershell" {
     inline = [
       "Write-Output 'Checking if the CSV file exists at the expected path...'",
@@ -296,19 +290,10 @@ build {
     ]
   }
 
-  provisioner "powershell" {
-    inline = [
-      "Write-Output 'Checking system status after HardeningKitty...'",
-      "Get-Service WinRM",
-      "Get-WindowsUpdateLog",
-      "Get-WinEvent -LogName 'Application'",
-      "Get-WinEvent -LogName 'System'",
-      "Get-PendingRebootStatus"
-    ]
-  }
-
   provisioner "windows-restart" {
-    restart_timeout = "20m"
+    check_registry        = true
+    restart_check_command = "powershell -command \"& {if ((-not (Get-Process TiWorker.exe -ErrorAction SilentlyContinue)) -and (-not [System.Environment]::HasShutdownStarted) ) { Write-Output 'Restart complete' }}\""
+    restart_timeout       = "6m"
   }
 
   provisioner "powershell" {
@@ -327,21 +312,10 @@ build {
     ]
   }
 
-  provisioner "powershell" {
-    inline = [
-      "Write-Output 'Checking for pending reboot...'",
-      "if ((Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\RebootPending' -ErrorAction SilentlyContinue)) {",
-      "  Write-Output 'Reboot is pending, restarting the machine...'",
-      "  Restart-Computer -Force",
-      "} else {",
-      "  Write-Output 'No pending reboot detected.'",
-      "}"
-    ]
-  }
-
-
   provisioner "windows-restart" {
-    restart_timeout = "20m"
+    check_registry        = true
+    restart_check_command = "powershell -command \"& {if ((-not (Get-Process TiWorker.exe -ErrorAction SilentlyContinue)) -and (-not [System.Environment]::HasShutdownStarted) ) { Write-Output 'Restart complete' }}\""
+    restart_timeout       = "20m"
   }
 
   provisioner "powershell" {
