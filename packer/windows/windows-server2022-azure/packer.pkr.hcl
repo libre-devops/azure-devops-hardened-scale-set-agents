@@ -276,7 +276,7 @@ build {
   provisioner "powershell" {
     environment_vars = [
       "HARDENING_KITTY_PATH=C:\\HardeningKitty",
-      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv;finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_user.csv;finding_list_msft_security_baseline_windows_server_2022_21h2_member_machine.csv",
+      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv;finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_user.csv",
       "IMAGE_OS=${local.image_os}",
       "BUILD_WITH_GUI=${local.deploy_gui}"
     ]
@@ -296,6 +296,20 @@ build {
     ]
   }
 
+  provisioner "powershell" {
+    inline = [
+      "Write-Output 'Checking system status after HardeningKitty...'",
+      "Get-Service WinRM",
+      "Get-WindowsUpdateLog",
+      "Get-WinEvent -LogName 'Application'",
+      "Get-WinEvent -LogName 'System'",
+      "Get-PendingRebootStatus"
+    ]
+  }
+
+  provisioner "windows-restart" {
+    restart_timeout = "20m"
+  }
 
   provisioner "powershell" {
     environment_vars = [
@@ -313,8 +327,21 @@ build {
     ]
   }
 
+  provisioner "powershell" {
+    inline = [
+      "Write-Output 'Checking for pending reboot...'",
+      "if ((Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\RebootPending' -ErrorAction SilentlyContinue)) {",
+      "  Write-Output 'Reboot is pending, restarting the machine...'",
+      "  Restart-Computer -Force",
+      "} else {",
+      "  Write-Output 'No pending reboot detected.'",
+      "}"
+    ]
+  }
+
+
   provisioner "windows-restart" {
-    restart_timeout = "10m"
+    restart_timeout = "20m"
   }
 
   provisioner "powershell" {
