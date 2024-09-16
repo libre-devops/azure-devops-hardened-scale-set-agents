@@ -112,7 +112,7 @@ source "azure-arm" "build" {
   os_type                   = "Windows"
   image_publisher           = "MicrosoftWindowsServer"
   image_offer               = "WindowsServer"
-  image_sku                 = local.deploy_gui == true ? "2022-datacenter-azure-edition-hotpatch" : "2022-datacenter-azure-edition-core"
+  image_sku                 = local.deploy_gui == true ? "2022-Datacenter-g2" : "2022-Datacenter-g2-core"
   vm_size                   = "Standard_D4ds_v5"
   communicator              = "winrm"
   winrm_insecure            = "true"
