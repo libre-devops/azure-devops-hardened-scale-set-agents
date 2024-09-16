@@ -20,14 +20,15 @@ param (
     [string]$Protocol = "Tcp",
     [string]$SourcePortRange = "*",
     [string]$DestinationPortRange = "*",
-    [string]$DestinationAddressPrefix = "VirtualNetwork"
+    [string]$DestinationAddressPrefix = "VirtualNetwork",
+    [string]$EnableDebugMode = "false"
 )
 
 # Function to check if the Packer file exists
 function Check-PackerFileExists
 {
     $filePath = Join-Path -Path $WorkingDirectory -ChildPath $PackerFileName
-    if (-not(Test-Path -Path $filePath))
+    if (-not (Test-Path -Path $filePath))
     {
         Write-Error "[$( $MyInvocation.MyCommand.Name )] Error: Packer file not found at $filePath. Exiting."
         exit 1
@@ -119,14 +120,14 @@ function Update-KeyVaultNetworkRule
         # Ensure $newIpRules is always treated as an array
         $newIpRules = @($currentIps)
 
-        if ($AddClientIP -and -not$ipAlreadyExists)
+        if ($AddClientIP -and -not $ipAlreadyExists)
         {
             Write-Host "[$( $MyInvocation.MyCommand.Name )] Appending current client IP to existing IP rules." -ForegroundColor Green
             # Use the array addition operator to add a new element to the array
             $newIpRules += $currentIp
             Write-Information "[$( $MyInvocation.MyCommand.Name )] Info: New IP rules are $( $newIpRules -join ', ' )"
         }
-        elseif (-not$AddClientIP -and $ipAlreadyExists)
+        elseif (-not $AddClientIP -and $ipAlreadyExists)
         {
             Write-Host "[$( $MyInvocation.MyCommand.Name )] Info: Removing current client IP from existing IP rules." -ForegroundColor Green
             $newIpRules = $newIpRules | Where-Object { $_ -ne $currentIp }
@@ -282,7 +283,7 @@ function Manage-CurrentIPInNsg
         if ($AddRule)
         {
             $currentIp = (Invoke-RestMethod -Uri "https://checkip.amazonaws.com").Trim()
-            if (-not$currentIp)
+            if (-not $currentIp)
             {
                 Write-Error "[$( $MyInvocation.MyCommand.Name )] Failed to obtain current IP."
                 return
@@ -413,18 +414,37 @@ function Run-PackerValidate
 
 function Run-PackerBuild
 {
+    param (
+        [bool]$EnableDebugMode = $false
+    )
     if ($RunPackerBuild -eq $true)
     {
         try
         {
             Write-Host "[$( $MyInvocation.MyCommand.Name )] Info: Running Packer build in $WorkingDirectory" -ForegroundColor Green
-            if ($ConvertedForcePackerBuild)
+            if ($ConvertedForcePackerBuild -eq $true)
             {
-                packer build -force $PackerFileName | Out-Host
+                if ($EnableDebugMode -eq $true)
+                {
+                    $Env:PACKER_LOG = "1"
+                    packer build -force $PackerFileName | Out-Host
+                }
+                else
+                {
+                    packer build -force $PackerFileName | Out-Host
+                }
             }
             else
             {
-                packer build $PackerFileName | Out-Host
+                if ($EnableDebugMode -eq $true)
+                {
+                    $Env:PACKER_LOG = "1"
+                    packer build $PackerFileName | Out-Host
+                }
+                else
+                {
+                    packer build $PackerFileName | Out-Host
+                }
             }
             if ($LASTEXITCODE -eq 0)
             {
@@ -452,7 +472,7 @@ try
     $ConvertedAddCurrentClientToKeyvault = Convert-ToBoolean $AddCurrentClientToKeyvault
     $ConvertedAttemptAzLogin = Convert-ToBoolean $AttemptAzLogin
     $ConvertedForcePackerBuild = Convert-ToBoolean $ForcePackerBuild
-
+    $ConvertedDebugMode = Convert-ToBoolean $EnableDebugMode
     if ($ConvertedAttemptAzLogin)
     {
         Connect-AzAccountWithServicePrincipal `
@@ -539,7 +559,15 @@ try
 
         if ($validateSuccess -eq $true)
         {
-            Run-PackerBuild
+            if ($ConvertedDebugMode -eq $true)
+            {
+                $Env:PACKER_LOG = "1"
+                Run-PackerBuild -EnableDebugMode $true
+            }
+            else
+            {
+                Run-PackerBuild
+            }
         }
         else
         {

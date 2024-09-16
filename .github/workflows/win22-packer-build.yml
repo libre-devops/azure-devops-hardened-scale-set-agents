@@ -40,6 +40,10 @@ on:
         type: boolean
         description: 'Whether to add your outbound client IP to an keyvault'
         default: true
+      enable_debug_mode:
+        type: boolean
+        description: 'Whether to enable debug mode'
+        default: false
 
 jobs:
   run-script:
@@ -103,7 +107,8 @@ jobs:
             -AddCurrentClientToNsg ${{ inputs.add_client_to_nsg }} `
             -NsgResourceId ${{ vars.nsgid }} `
             -AddCurrentClientToKeyvault ${{ inputs.add_client_to_nsg }} `
-            -KeyvaultResourceId ${{ vars.keyvaultid }}
+            -KeyvaultResourceId ${{ vars.keyvaultid }} `
+            -EnableDebugMode ${{ inputs.enable_debug_mode }}
         env:
           PKR_VAR_ARM_CLIENT_ID: ${{ secrets.SpokeSvpApplicationId }}
           PKR_VAR_ARM_CLIENT_SECRET: ${{ secrets.SpokeSvpClientSecret }}
