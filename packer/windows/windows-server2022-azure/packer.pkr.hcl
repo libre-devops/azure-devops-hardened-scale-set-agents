@@ -46,7 +46,7 @@ variable "install_user" {
 
 variable "deploy_gui" {
   type        = bool
-  default     = false
+  default     = true
   description = "Whether to deploy a Windows Server with or without a GUI"
 }
 
