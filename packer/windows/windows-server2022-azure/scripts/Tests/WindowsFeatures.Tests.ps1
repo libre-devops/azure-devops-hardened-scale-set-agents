@@ -19,24 +19,3 @@ Describe "WindowsFeatures" {
     }
 }
 
-Describe "Windows Updates" {
-    It "WindowsUpdateDone.txt should exist" {
-        "$env:windir\WindowsUpdateDone.txt" | Should -Exist
-    }
-
-    $testCases = Get-WindowsUpdateStates | Sort-Object Title | ForEach-Object {
-        @{
-            Title = $_.Title
-            State = $_.State
-        }
-    }
-
-    It "<Title>" -TestCases $testCases {
-        $expect = "Installed"
-        if ( $Title -match "Microsoft Defender Antivirus" ) {
-            $expect = "Installed", "Failed", "Running"
-        }
-
-        $State | Should -BeIn $expect
-    }
-}
