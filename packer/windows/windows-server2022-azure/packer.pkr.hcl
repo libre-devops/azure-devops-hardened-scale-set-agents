@@ -52,7 +52,7 @@ variable "deploy_gui" {
 
 locals {
   deploy_gui            = var.deploy_gui
-  image_version = formatdate("YYYYMM.DD.HHmmss", timestamp())
+  image_version         = formatdate("YYYYMM.DD.HHmmss", timestamp())
   image_os              = "windowsserver2022azure"
   short                 = "lbd"
   env                   = "prd"
@@ -113,7 +113,7 @@ source "azure-arm" "build" {
   image_publisher           = "MicrosoftWindowsServer"
   image_offer               = "WindowsServer"
   image_sku                 = local.deploy_gui == true ? "2022-datacenter-azure-edition-hotpatch" : "2022-datacenter-azure-edition-core"
-  vm_size                   = "Standard_B2ms"
+  vm_size                   = "Standard_D4ds_v5"
   communicator              = "winrm"
   winrm_insecure            = "true"
   winrm_use_ssl             = "true"
@@ -232,14 +232,41 @@ build {
       "${path.root}/scripts/Installers/Configure-Toolset.ps1",
       "${path.root}/scripts/Installers/Install-PipPackages.ps1",
       "${path.root}/scripts/Installers/Install-HardeningKitty.ps1",
+      "${path.root}/scripts/Installers/Install-WindowsFeatures.ps1",
       "${path.root}/scripts/Installers/Initialize-VM.ps1",
       "${path.root}/scripts/Installers/Update-ImageData.ps1",
     ]
   }
 
+  provisioner "windows-restart" {
+    check_registry        = true
+    restart_check_command = "powershell -command \"& {while ( (Get-WindowsOptionalFeature -Online -FeatureName Containers -ErrorAction SilentlyContinue).State -ne 'Enabled' ) { Start-Sleep 30; Write-Output 'InProgress' }}\""
+    restart_timeout       = "10m"
+  }
+
+  provisioner "powershell" {
+    inline = ["Set-Service -Name wlansvc -StartupType Manual", "if ($(Get-Service -Name wlansvc).Status -eq 'Running') { Stop-Service -Name wlansvc}"]
+  }
+
+  provisioner "powershell" {
+    environment_vars = [
+      "IMAGE_VERSION=${local.image_version}",
+      "IMAGE_OS=${local.image_os}",
+      "AGENT_TOOLSDIRECTORY=${var.agent_tools_directory}",
+      "IMAGE_FOLDER=${var.image_folder}",
+      "IMAGEDATA_FILE=${var.imagedata_file}",
+      "BUILD_WITH_GUI=${local.deploy_gui}"
+    ]
+    execution_policy = "unrestricted"
+    scripts = [
+      "${path.root}/scripts/Installers/Install-Docker.ps1",
+      "${path.root}/scripts/Installers/Install-DockerCompose.ps1",
+      "${path.root}/scripts/Installers/Install-DockerWinCred.ps1",
+    ]
+  }
 
   provisioner "windows-restart" {
-    restart_timeout = "10m"
+    restart_timeout = "30m"
   }
 
   provisioner "powershell" {
@@ -270,7 +297,7 @@ build {
   provisioner "powershell" {
     environment_vars = [
       "HARDENING_KITTY_PATH=C:\\HardeningKitty",
-      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv;finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_user.csv",
+      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv;finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_user.csv;finding_list_microsoft_windows_tls.csv;finding_list_msft_security_baseline_edge_117_machine.csv;finding_list_msft_security_baseline_windows_server_2022_21h2_member_machine.csv",
       "IMAGE_OS=${local.image_os}",
       "BUILD_WITH_GUI=${local.deploy_gui}"
     ]

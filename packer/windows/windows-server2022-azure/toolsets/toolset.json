@@ -99,5 +99,12 @@
             "package": "terraform-compliance",
             "cmd": "terraform-compliance --version"
         }
-    ]
+    ],
+    "docker": {
+        "images": [],
+        "components": {
+            "docker": "27.2.1",
+            "compose": "2.29.3"
+        }
+    }
 }
