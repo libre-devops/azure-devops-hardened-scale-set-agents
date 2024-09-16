@@ -261,7 +261,7 @@ build {
     scripts = [
       "${path.root}/scripts/Installers/Install-Docker.ps1",
       "${path.root}/scripts/Installers/Install-DockerCompose.ps1",
-      "${path.root}/scripts/Installers/Install-DockerWinCred.ps1",
+      "${path.root}/scripts/Installers/Install-Docker-WinCred.ps1",
     ]
   }
 
