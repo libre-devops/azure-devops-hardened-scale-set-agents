@@ -1,7 +1,0 @@
-ID,Category,Name,Method,MethodArgument,RegistryPath,RegistryItem,ClassName,Namespace,Property,DefaultValue,RecommendedValue,Operator,Severity
-11007,"Administrative Templates: Windows Components","WinRM Client: Allow Basic authentication",Registry,,HKLM:\Software\Policies\Microsoft\Windows\WinRM\Client,AllowBasic,,,,1,0,=,Medium
-11008,"Administrative Templates: Windows Components","WinRM Client: Allow unencrypted traffic",Registry,,HKLM:\Software\Policies\Microsoft\Windows\WinRM\Client,AllowUnencryptedTraffic,,,,1,0,=,Medium
-11009,"Administrative Templates: Windows Components","WinRM Client: Disallow Digest authentication",Registry,,HKLM:\Software\Policies\Microsoft\Windows\WinRM\Client,AllowDigest,,,,1,0,=,Medium
-11010,"Administrative Templates: Windows Components","WinRM Service: Allow Basic authentication",Registry,,HKLM:\Software\Policies\Microsoft\Windows\WinRM\Service,AllowBasic,,,,1,0,=,Medium
-11011,"Administrative Templates: Windows Components","WinRM Service: Allow unencrypted traffic",Registry,,HKLM:\Software\Policies\Microsoft\Windows\WinRM\Service,AllowUnencryptedTraffic,,,,1,0,=,Medium
-11012,"Administrative Templates: Windows Components","WinRM Service: Disallow WinRM from storing RunAs credentials",Registry,,HKLM:\Software\Policies\Microsoft\Windows\WinRM\Service,DisableRunAs,,,,0,1,=,Medium
