@@ -25,11 +25,11 @@ module "bastion" {
   tags     = data.azurerm_resource_group.rg.tags
 
   bastion_host_name                  = "bst-${var.short}-${var.loc}-${var.env}-01"
-  bastion_sku                        = "Developer"
+  bastion_sku                        = "Basic"
   virtual_network_id                 = data.azurerm_virtual_network.vnet.id
-  create_bastion_nsg                 = false
-  create_bastion_nsg_rules           = false
-  create_bastion_subnet              = false
+  create_bastion_nsg                 = true
+  create_bastion_nsg_rules           = true
+  create_bastion_subnet              = true
   bastion_subnet_target_vnet_name    = data.azurerm_virtual_network.vnet.name
   bastion_subnet_target_vnet_rg_name = data.azurerm_virtual_network.vnet.resource_group_name
   bastion_subnet_range               = module.subnet_calculator.subnet_ranges[1]
