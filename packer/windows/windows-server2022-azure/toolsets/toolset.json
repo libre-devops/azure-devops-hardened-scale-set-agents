@@ -72,9 +72,6 @@
                 "name": "packer"
             },
             {
-                "name": "gh"
-            },
-            {
                 "name": "msys2"
             },
             {
@@ -106,5 +103,10 @@
             "docker": "27.2.1",
             "compose": "2.29.3"
         }
+    },
+    "TenvPackages": {
+        "terraform": ["latest"],
+        "terragrunt": [],
+        "opentofu" : []
     }
 }

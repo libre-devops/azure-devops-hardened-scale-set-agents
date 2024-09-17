@@ -99,7 +99,7 @@ module "windows_vm_scale_set" {
       ]
       os_disk = {
         caching              = "ReadOnly"
-        storage_account_type = "PremiumV2_LRS"
+        storage_account_type = "Premium_LRS"
         disk_size_gb         = 127
       }
 

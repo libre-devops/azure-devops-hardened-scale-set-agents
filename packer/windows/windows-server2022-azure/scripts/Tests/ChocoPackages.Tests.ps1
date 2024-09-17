@@ -26,12 +26,6 @@ Describe "PowerShell Core" {
     }
 }
 
-Describe "GitHub CLI" {
-    It "gh" {
-        "gh --version" | Should -ReturnZeroExitCode
-    }
-}
-
 Describe "Tenv" {
     It "Tenv" {
         "tenv --version" | Should -ReturnZeroExitCode
