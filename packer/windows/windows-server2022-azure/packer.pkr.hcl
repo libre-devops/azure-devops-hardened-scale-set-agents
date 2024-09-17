@@ -52,7 +52,7 @@ variable "deploy_gui" {
 
 locals {
   deploy_gui            = var.deploy_gui
-  image_version         = formatdate("YYYYMM.DD.HHmmssSSS", timestamp())
+  image_version         = formatdate("YYYYMM.DD.HHmmss", timestamp())
   image_os              = "windowsserver2022azure"
   short                 = "lbd"
   env                   = "prd"
