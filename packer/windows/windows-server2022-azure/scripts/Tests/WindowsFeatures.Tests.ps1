@@ -10,10 +10,6 @@ Describe "WindowsFeatures" {
         }
     }
 
-    it "Check WSL is on path" {
-        (Get-Command -Name 'wsl') | Should -BeTrue
-    }
-
     it "Check WLAN service is stopped" {
         (Get-Service -Name wlansvc).Status | Should -Be "Stopped"
     }
