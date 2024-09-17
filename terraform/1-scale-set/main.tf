@@ -67,7 +67,7 @@ module "windows_vm_scale_set" {
       admin_username                  = "Local${title(var.short)}${title(var.env)}Admin"
       admin_password                  = data.azurerm_key_vault_secret.admin_pwd.value
       instances                       = 1
-      sku                             = "Standard_B2ms"
+      sku                             = "Standard_D4ds_v5"
       vm_os_simple                    = false
       use_custom_image                = true
       custom_source_image_id          = data.azurerm_shared_image.azdo_win_image.id
