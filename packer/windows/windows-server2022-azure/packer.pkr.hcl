@@ -233,6 +233,7 @@ build {
       "${path.root}/scripts/Installers/Install-PipPackages.ps1",
       "${path.root}/scripts/Installers/Install-HardeningKitty.ps1",
       "${path.root}/scripts/Installers/Install-WindowsFeatures.ps1",
+      "${path.root}/scripts/Installers/Install-Terraform.ps1",
       "${path.root}/scripts/Installers/Initialize-VM.ps1",
       "${path.root}/scripts/Installers/Update-ImageData.ps1",
     ]
