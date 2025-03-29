@@ -62,7 +62,7 @@ locals {
   gallery_name          = "gal${local.short}${local.loc}${local.env}01"
   gallery_rg_name       = "rg-${local.short}-${local.loc}-${local.env}-01"
   managed_identity_name = "uid-${local.short}-${local.loc}-${local.env}-01"
-  image_name            = "AzDoWindows2025
+  image_name            = "AzDoWindows2025"
   vnet_rg_name          = local.rg_name
   vnet_name             = "vnet-${local.short}-${local.loc}-${local.env}-01"
   subnet_name           = "VMSubnet"
