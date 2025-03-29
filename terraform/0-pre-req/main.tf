@@ -179,7 +179,7 @@ module "images" {
   tags     = module.rg.rg_tags
 
 
-  gallery_name = module.gallery.gallery_name["0"]
+  gallery_name = module.gallery.gallery_name[local.gallery_name]
   images = [
     {
       name                                = local.windows_image_name

@@ -108,7 +108,7 @@ source "azure-arm" "build" {
   client_secret             = var.arm_client_secret
   subscription_id           = var.arm_subscription_id
   tenant_id                 = var.arm_tenant_id
-  build_resource_group_name = local.mgmt_rg_name
+  build_resource_group_name = local.rg_name
   build_key_vault_name      = local.key_vault_name
   os_type                   = "Windows"
   image_publisher           = "MicrosoftWindowsServer"
