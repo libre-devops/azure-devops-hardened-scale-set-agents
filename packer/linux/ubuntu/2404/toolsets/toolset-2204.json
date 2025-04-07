@@ -132,11 +132,7 @@
         {"name": "colordiff"},
         {"name": "tfenv"}
     ],
-    "docker": {
-        "images": [
-            "ubuntu:22.04"
-        ]
-    },
+    "docker": {},
     "pipx": [
         {
             "package": "yamllint",

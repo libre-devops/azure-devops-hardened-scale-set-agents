@@ -1,58 +1,64 @@
-variable "helper_script_folder" {
-  type        = string
-  default     = "/imagegeneration/helpers"
-  description = "Used in scripts"
+packer {
+  required_plugins {
+    azure = {
+      source  = "github.com/hashicorp/azure"
+      version = "~>2.0.4"
+    }
+  }
 }
 
-variable "image_folder" {
+variable "agent_tools_directory" {
   type        = string
-  default     = "/imagegeneration"
-  description = "Used in scripts"
-}
-
-variable "image_os" {
-  type        = string
-  default     = "ubuntu22"
-  description = "Used in scripts"
-}
-
-variable "image_version" {
-  type        = string
-  default     = "uat"
-  description = "Used in scripts"
+  default     = "/opt/hostedtoolcache/linux"
+  description = "The place where tools will be installed on the image"
 }
 
 variable "imagedata_file" {
   type        = string
   default     = "/imagegeneration/imagedata.json"
-  description = "Used in scripts"
+  description = "Where image data is stored"
+}
+
+variable "helper_script_folder" {
+  type        = string
+  default     = "/imagegeneration/helpers"
+  description = "Where the helper scripts from the build will be stored"
+}
+
+variable "image_folder" {
+  type        = string
+  default     = "/imagegeneration"
+  description = "The image folder"
 }
 
 variable "installer_script_folder" {
   type        = string
   default     = "/imagegeneration/installers"
+  description = "Where the install scripts live"
+}
+
+variable "image_os" {
+  type        = string
+  default     = "ubuntu24"
   description = "Used in scripts"
 }
 
-###### Packer Variables ######
-
-variable "deploy_gui" {
-  type        = bool
-  default     = true
-  description = "Whether to deploy a Windows Server with or without a GUI"
+variable "image_version" {
+  type        = string
+  default     = formatdate("YYYYMM.DD.hhmmss", timestamp())
+  description = "Used in scripts"
 }
 
 locals {
-  deploy_gui            = var.deploy_gui
-  image_version         = formatdate("YYYYMM.DD.hhmmss", timestamp())
-  image_os              = "ubuntu2404"
+  image_os              = var.image_os
+  image_version         = var.image_version
   short                 = "libd"
   env                   = "dev"
-  loc                   = "uks"
+  loc                   = "dev"
   location              = "uksouth"
-  rg_name               = "rg-${local.short}-${local.loc}-${local.env}-01"
+  rg_name               = "rg-${local.short}-${local.loc}-${local.env}-build"
   gallery_name          = "gal${local.short}${local.loc}${local.env}01"
-  gallery_rg_name       = "rg-${local.short}-${local.loc}-${local.env}-01"
+  gallery_rg_name       = local.rg_name
   managed_identity_name = "uid-${local.short}-${local.loc}-${local.env}-01"
   image_name            = "AzDoUbuntu2404"
   vnet_rg_name          = local.rg_name
@@ -65,7 +71,6 @@ locals {
 
 ###### Packer Variables ######
 
-// Uses the packer env inbuilt function - https://www.packer.io/docs/templates/hcl_templates/functions/contextual/env
 variable "arm_client_id" {
   type        = string
   description = "The client id, passed as a PKR_VAR"
@@ -74,19 +79,20 @@ variable "arm_client_id" {
 
 variable "arm_client_secret" {
   type        = string
+  sensitive   = true
   description = "The client secret, passed as a PKR_VAR"
   default     = "${env("PKR_VAR_ARM_CLIENT_SECRET")}"
 }
 
 variable "arm_subscription_id" {
   type        = string
-  description = "The gallery resource group name, passed as a PKR_VAR"
+  description = "The subscription id, passed as a PKR_VAR"
   default     = "${env("PKR_VAR_ARM_SUBSCRIPTION_ID")}"
 }
 
 variable "arm_tenant_id" {
   type        = string
-  description = "The gallery resource group name, passed as a PKR_VAR"
+  description = "The tenant id, passed as a PKR_VAR"
   default     = "${env("ARM_TENANT_ID")}"
 }
 
@@ -96,37 +102,35 @@ variable "arm_tenant_id" {
 // Begins Packer build Section
 source "azure-arm" "build" {
 
-  client_id                 = var.client_id
-  client_secret             = var.client_secret
-  subscription_id           = var.subscription_id
-  tenant_id                 = var.tenant_id
-  build_resource_group_name = var.gallery_rg_name
+  client_id                 = var.arm_client_id
+  client_secret             = var.arm_client_secret
+  subscription_id           = var.arm_subscription_id
+  tenant_id                 = var.arm_tenant_id
+  build_resource_group_name = local.rg_name
+  build_key_vault_name      = local.key_vault_name
   user_data_file            = "${path.root}/scripts/base/configure-legacy-ssh.sh" # Needed due to bug https://github.com/hashicorp/packer/issues/11656
 
-  // The sku you want to base your image off - In this case - Ubuntu 22
+  // The sku you want to base your image off - In this case - Ubuntu 24.04
   os_type                 = "Linux"
   image_publisher         = "Canonical"
-  image_offer             = "0001-com-ubuntu-server-jammy"
-  image_sku               = "24_04-lts"
-  vm_size                 = "Standard_B4ms"
+  image_offer             = "ubuntu-24_04-lts"
+  vm_size                 = "Standard_D4ds_v5"
+  image_sku               = "server"
   temporary_key_pair_type = "ed25519"
 
-  virtual_network_name                   = var.virtual_network_name
-  virtual_network_resource_group_name    = var.virtual_network_resource_group_name
-  virtual_network_subnet_name            = var.virtual_network_subnet_name
-  private_virtual_network_with_public_ip = var.private_virtual_network_with_public_ip
+  virtual_network_name                   = local.vnet_name
+  virtual_network_resource_group_name    = local.vnet_rg_name
+  virtual_network_subnet_name            = local.subnet_name
+  private_virtual_network_with_public_ip = local.use_public_ip
 
-  // Name of Image which is created by Terraform
-  managed_image_name                = "lbdo-azdo-ubuntu-22.04"
-  managed_image_resource_group_name = var.gallery_rg_name
 
   // Shared image gallery is created by terraform in the pre-req step, as is the resource group.
   shared_image_gallery_destination {
-    gallery_name   = var.gallery_name
-    image_name     = "lbdo-azdo-ubuntu-22.04"
-    image_version  = formatdate("YYYY.MM.DD", timestamp())
-    resource_group = var.gallery_rg_name
-    subscription   = var.subscription_id
+    gallery_name   = local.gallery_name
+    image_name     = local.image_name
+    image_version  = local.image_version
+    resource_group = local.gallery_rg_name
+    subscription   = var.arm_subscription_id
     replication_regions = [
       "uksouth"
     ]
@@ -233,14 +237,6 @@ build {
     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
     scripts = ["${path.root}/scripts/installers/Install-PowerShellModules.ps1",
     "${path.root}/scripts/installers/Install-AzureModules.ps1"]
-  }
-
-  # Installs Docker and Docker-Compose via Moby - Needed
-  provisioner "shell" {
-    environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "DOCKERHUB_LOGIN=${var.dockerhub_login}", "DOCKERHUB_PASSWORD=${var.dockerhub_password}"]
-    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts = ["${path.root}/scripts/installers/docker-compose.sh",
-    "${path.root}/scripts/installers/docker-moby.sh"]
   }
 
   # Installs packages added in the installers dir - Needed

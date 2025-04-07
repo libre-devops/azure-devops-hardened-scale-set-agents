@@ -4,12 +4,12 @@ trigger: none
 
 parameters:
   - name: codeLocation
-    default: "$(Build.SourcesDirectory)/packer/windows/windows-server2025"
+    default: "$(Build.SourcesDirectory)/packer/linux/ubuntu/2404"
     displayName: "Location of the code"
     type: string
 
   - name: packerTemplateLocation
-    default: "$(Build.SourcesDirectory)/packer/windows/windows-server2025/packer.pkr.hcl"
+    default: "$(Build.SourcesDirectory)/packer/linux/ubuntu/2404/packer.pkr.hcl"
     displayName: "Location of the packer template"
     type: string
 
@@ -44,7 +44,7 @@ stages:
         workspace:
           clean: all
         steps:
-          - template: templates/packer-spn-secret-public-network.yml
+          - template: ../../../templates/packer-spn-secret-public-network.yml
             parameters:
               codeLocation: ${{ parameters.codeLocation }}
               packerTemplateLocation: ${{ parameters.packerTemplateLocation }}

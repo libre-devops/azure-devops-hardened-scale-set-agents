@@ -1,8 +1,9 @@
 param (
     [bool]$ManualRun = $false, # By default, this script should run as a pipeline, this flag exists for when it is not
-    [string]$PackerTemplatePath = "$(Get-Location)/packer/windows/windows-server2022-azure/packer.pkr.hcl",
+    [string]$PackerTemplatePath = "$(Get-Location)/packer/linux/ubuntu/2404/packer.pkr.hcl",
     [string]$NsgId = "/subscriptions/bf6128f4-93cb-45d4-bc13-7b3be2eea1c5/resourceGroups/rg-libd-uks-dev-mgmt/providers/Microsoft.Network/networkSecurityGroups/nsg-libd-uks-dev-mgmt-01" # The ID of the NSG to add the rule to
 )
+
 
 # Get timestamp in "HH:mm:ss" format
 $timestamp = Get-Date -Format "HH:mm:ss"
@@ -48,7 +49,7 @@ Test-EnvironmentVariablesExist -EnvVars @(
     "PKR_VAR_ARM_CLIENT_ID",
     "PKR_VAR_ARM_TENANT_ID",
     "PKR_VAR_ARM_SUBSCRIPTION_ID",
-    "PKR_VAR_ARM_USE_MSI"
+    "PKR_VAR_ARM_OIDC_TOKEN"
 )
 
 Test-PathExists -Paths @($PackerTemplatePath)
