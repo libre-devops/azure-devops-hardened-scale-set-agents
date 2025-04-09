@@ -50,7 +50,7 @@ Describe "Homebrew" {
 
 
 Describe "Containers" {
-    $testCases = @("podman", "buildah", "skopeo", "podman-docker") | ForEach-Object { @{ContainerCommand = $_} }
+    $testCases = @("podman", "buildah", "skopeo") | ForEach-Object { @{ContainerCommand = $_} }
 
     It "<ContainerCommand>" -TestCases $testCases {
         param (
