@@ -8,7 +8,6 @@
 source $HELPER_SCRIPTS/install.sh
 
 ## Install git
-add-apt-repository $GIT_REPO -y
 apt-get update
 apt-get install git -y
 git --version
