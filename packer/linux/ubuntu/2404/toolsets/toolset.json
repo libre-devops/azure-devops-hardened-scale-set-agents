@@ -4,10 +4,10 @@
             "name": "Python",
             "url" : "https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json",
             "platform" : "linux",
-            "platform_version": "22.04",
+            "platform_version": "24.04",
             "arch": "x64",
             "versions": [
-                "3.10.*"
+                "3.11.*"
             ]
         },
         {
@@ -24,17 +24,6 @@
         {"name": "Microsoft.Graph"},
         {"name": "Pester"},
         {"name": "PSScriptAnalyzer"}
-    ],
-    "azureModules": [
-        {
-            "name": "az",
-            "url" : "https://raw.githubusercontent.com/Azure/az-ps-module-versions/main/versions-manifest.json",
-            "versions": [
-                "7.3.2"
-            ],
-            "zip_versions": [
-            ]
-        }
     ],
     "apt": {
         "common_packages": [
@@ -125,12 +114,13 @@
     },
     "brew": [
         {"name": "zstd"},
-        {"name": "tfsec"},
+        {"name": "trivvy"},
         {"name": "terraform-docs"},
         {"name": "kubeval"},
         {"name": "kubeaudit"},
         {"name": "colordiff"},
-        {"name": "tfenv"}
+        {"name": "tenv"},
+        {"name": "kubernetes-cli"}
     ],
     "docker": {},
     "pipx": [
@@ -139,7 +129,7 @@
             "cmd": "yamllint"
         },
         {
-            "package": "ansible-core",
+            "package": "ansible",
             "cmd": "ansible"
         },
         {
@@ -150,16 +140,5 @@
             "package": "checkov",
             "cmd": "checkov"
         }
-    ],
-    "dotnet": {
-        "aptPackages": [
-            "dotnet-sdk-6.0"
-        ],
-        "versions": [
-            "6.0"
-        ],
-        "tools": [
-            { "name": "nbgv", "test": "nbgv --version", "getversion" : "nbgv --version" }
-        ]
-    }
+    ]
 }

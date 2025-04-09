@@ -199,7 +199,7 @@ build {
   # Loads JSON file with toolset within - Needed
   provisioner "file" {
     destination = "${var.installer_script_folder}/toolset.json"
-    source      = "${path.root}/toolsets/toolset-2204.json"
+    source      = "${path.root}/toolsets/toolset.json"
   }
 
   # Primes image data file - Probably Unneeded, leaving
@@ -221,16 +221,19 @@ build {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts = [
-      "${path.root}/scripts/installers/complete-snap-setup.sh",
-    "${path.root}/scripts/installers/powershellcore.sh"]
+    "${path.root}/scripts/installers/complete-snap-setup.sh",
+    "${path.root}/scripts/installers/powershellcore.sh"
+    ]
   }
 
   # Install PowerShell Modules - Needed
   provisioner "shell" {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-    scripts = ["${path.root}/scripts/installers/Install-PowerShellModules.ps1",
-    "${path.root}/scripts/installers/Install-AzureModules.ps1"]
+    scripts = [
+      "${path.root}/scripts/installers/Install-PowerShellModules.ps1",
+      "${path.root}/scripts/installers/Install-AzureModules.ps1"
+    ]
   }
 
   # Installs packages added in the installers dir - Needed
@@ -238,21 +241,12 @@ build {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "DEBIAN_FRONTEND=noninteractive"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts = [
-      "${path.root}/scripts/installers/azcopy.sh",
-      "${path.root}/scripts/installers/azure-cli.sh",
-      "${path.root}/scripts/installers/azure-devops-cli.sh",
       "${path.root}/scripts/installers/basic.sh",
       "${path.root}/scripts/installers/containers.sh",
-      "${path.root}/scripts/installers/dotnetcore-sdk.sh",
       "${path.root}/scripts/installers/git.sh",
-      "${path.root}/scripts/installers/github-cli.sh",
-      "${path.root}/scripts/installers/kubernetes-tools.sh",
-      "${path.root}/scripts/installers/packer.sh",
       "${path.root}/scripts/installers/vcpkg.sh",
       "${path.root}/scripts/installers/dpkg-config.sh",
       "${path.root}/scripts/installers/yq.sh",
-      "${path.root}/scripts/installers/pypy.sh",
-      "${path.root}/scripts/installers/python.sh",
     ]
   }
 
@@ -260,8 +254,10 @@ build {
   provisioner "shell" {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-    scripts = ["${path.root}/scripts/installers/Install-Toolset.ps1",
-    "${path.root}/scripts/installers/Configure-Toolset.ps1"]
+    scripts = [
+      "${path.root}/scripts/installers/Install-Toolset.ps1",
+      "${path.root}/scripts/installers/Configure-Toolset.ps1"
+    ]
   }
 
   # Installs everything in the PipX section - Needed

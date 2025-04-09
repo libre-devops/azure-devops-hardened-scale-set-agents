@@ -6,7 +6,7 @@
 
 source $HELPER_SCRIPTS/os.sh
 
-install_packages=(podman buildah skopeo)
+install_packages=(podman buildah skopeo podman-docker)
 
 # Packages is available in the official Ubuntu upstream starting from Ubuntu 21
 if isUbuntu18 || isUbuntu20; then

@@ -37,7 +37,10 @@ for package in $brew_packages; do
     fi
 done
 
-# Execute TFenv install
-tfenv install latest
+tenv tf install latest --verbose && \
+    tenv tf use latest --verbose && \
+    tenv tofu install latest --verbose && \
+    tenv tofu use latest --verbose
+
 
 invoke_tests "Tools" "Homebrew"

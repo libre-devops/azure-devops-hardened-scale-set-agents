@@ -2,34 +2,11 @@ Describe "azcopy" {
     It "azcopy" {
         "azcopy --version" | Should -ReturnZeroExitCode
     }
-
-    It "azcopy10 link exists" {
-        "azcopy10 --version" | Should -ReturnZeroExitCode
-    }
 }
 
 Describe "Ansible" {
     It "Ansible" {
         "ansible --version" | Should -ReturnZeroExitCode
-    }
-}
-
-Describe "Checkov" {
-    It "Checkov" {
-        "checkov --version" | Should -ReturnZeroExitCode
-    }
-}
-
-Describe "Terraform-Compliance" {
-    It "Terraform-Compliance" {
-        "terraform-compliance --version" | Should -ReturnZeroExitCode
-    }
-}
-
-# TFenv is used to install terraform and this will test a version is installed
-Describe "Tfenv" {
-    It "tfenv" {
-        "tfenv list" | Should -ReturnZeroExitCode
     }
 }
 
@@ -71,36 +48,9 @@ Describe "Homebrew" {
     }
 }
 
-Describe "Kubernetes tools" {
-    It "kind" {
-        "kind --version" | Should -ReturnZeroExitCode
-    }
-
-    It "kubectl" {
-        "kubectl version" | Should -MatchCommandOutput "Client Version: version.Info"
-    }
-
-    It "helm" {
-        "helm version" | Should -ReturnZeroExitCode
-    }
-
-    It "minikube" {
-        "minikube version" | Should -ReturnZeroExitCode
-    }
-
-    It "kustomize" {
-        "kustomize version" | Should -ReturnZeroExitCode
-    }
-}
-
-Describe "Packer" {
-    It "packer" {
-        "packer --version" | Should -ReturnZeroExitCode
-    }
-}
 
 Describe "Containers" {
-    $testCases = @("podman", "buildah", "skopeo") | ForEach-Object { @{ContainerCommand = $_} }
+    $testCases = @("podman", "buildah", "skopeo", "podman-docker) | ForEach-Object { @{ContainerCommand = $_} }
 
     It "<ContainerCommand>" -TestCases $testCases {
         param (
