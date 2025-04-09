@@ -48,7 +48,7 @@ locals {
   image_version         = formatdate("YYYYMM.DD.hhmmss", timestamp())
   short                 = "libd"
   env                   = "dev"
-  loc                   = "dev"
+  loc                   = "uks"
   location              = "uksouth"
   rg_name               = "rg-${local.short}-${local.loc}-${local.env}-01"
   gallery_name          = "gal${local.short}${local.loc}${local.env}01"
