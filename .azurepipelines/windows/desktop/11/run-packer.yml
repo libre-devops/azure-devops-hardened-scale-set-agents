@@ -1,0 +1,52 @@
+name: $(Build.DefinitionName)-$(date:yyyyMMdd)$(rev:.r)
+
+trigger: none
+
+parameters:
+  - name: codeLocation
+    default: "$(Build.SourcesDirectory)/packer/windows/desktop/11"
+    displayName: "Location of the code"
+    type: string
+
+  - name: packerTemplateLocation
+    default: "$(Build.SourcesDirectory)/packer/windows/desktop/11/packer.pkr.hcl"
+    displayName: "Location of the packer template"
+    type: string
+
+  - name: poolName
+    displayName: "Pool Name"
+    type: string
+    values:
+      - "Default"
+      - "Azure Pipeline"
+      - "lbd-linux-pool"
+    default: "Default"
+
+  - name: serviceConnection
+    displayName: Service Connection
+    type: string
+    default: "spn-libd-uks-dev-mgmt-01-client-secret-enabled"
+    values:
+      - "spn-libd-uks-dev-mgmt-01"
+      - "spn-libd-uks-dev-mgmt-01-client-secret-enabled"
+      - "uid-libd-uks-dev-mgmt-01"
+
+
+stages:
+  - stage: "Test"
+    displayName: "Test Stage"
+    jobs:
+      - job: "Test"
+        displayName: "Test"
+        timeoutInMinutes: 120
+        pool:
+          name: 'Default'
+        workspace:
+          clean: all
+        steps:
+          - template: ../../../templates/packer-spn-secret-public-network.yml
+            parameters:
+              codeLocation: ${{ parameters.codeLocation }}
+              packerTemplateLocation: ${{ parameters.packerTemplateLocation }}
+              nsgId: "/subscriptions/bf6128f4-93cb-45d4-bc13-7b3be2eea1c5/resourceGroups/rg-libd-uks-dev-01/providers/Microsoft.Network/networkSecurityGroups/nsg-libd-uks-dev-01"
+              serviceConnection: ${{ parameters.serviceConnection }}

@@ -1,0 +1,19 @@
+{
+    "powershellModules": [
+        {"name": "Pester"},
+        {"name": "PowerShellGet"},
+        {"name": "PSWindowsUpdate"},
+        {"name": "Microsoft.Graph"}
+    ],
+    "choco": {
+        "common_packages": [
+            { "name": "7zip.install" },
+            { "name": "git.install" },
+            { "name": "jq" },
+            { "name": "microsoft-edge" },
+            { "name": "powershell-core" },
+            { "name": "openssl" },
+            { "name": "firefox" }
+        ]
+    }
+}
