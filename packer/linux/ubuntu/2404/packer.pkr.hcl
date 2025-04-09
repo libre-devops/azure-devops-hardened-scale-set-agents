@@ -232,7 +232,6 @@ build {
     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
     scripts = [
       "${path.root}/scripts/installers/Install-PowerShellModules.ps1",
-      "${path.root}/scripts/installers/Install-AzureModules.ps1"
     ]
   }
 

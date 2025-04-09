@@ -20,6 +20,7 @@
         }
     ],
     "powershellModules": [
+        {"name": "Az"},
         {"name": "MarkdownPS"},
         {"name": "Microsoft.Graph"},
         {"name": "Pester"},
