@@ -204,14 +204,14 @@ build {
 
   # Primes image data file - Probably Unneeded, leaving
   provisioner "shell" {
-    environment_vars = ["IMAGE_VERSION=${var.image_version}", "IMAGEDATA_FILE=${var.imagedata_file}"]
+    environment_vars = ["IMAGE_VERSION=${local.image_version}", "IMAGEDATA_FILE=${var.imagedata_file}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts          = ["${path.root}/scripts/installers/preimagedata.sh"]
   }
 
   # Configures OS environment - Needed
   provisioner "shell" {
-    environment_vars = ["IMAGE_VERSION=${var.image_version}", "IMAGE_OS=${var.image_os}", "HELPER_SCRIPTS=${var.helper_script_folder}"]
+    environment_vars = ["IMAGE_VERSION=${local.image_version}", "IMAGE_OS=${var.image_os}", "HELPER_SCRIPTS=${var.helper_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts          = ["${path.root}/scripts/installers/configure-environment.sh"]
   }
@@ -307,7 +307,7 @@ build {
 
   # Runs Pester tests - Needed
   provisioner "shell" {
-    environment_vars = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+    environment_vars = ["IMAGE_VERSION=${local.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
     inline           = ["pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
   }
 
