@@ -50,7 +50,7 @@ locals {
   env                   = "dev"
   loc                   = "dev"
   location              = "uksouth"
-  rg_name               = "rg-${local.short}-${local.loc}-${local.env}-build"
+  rg_name               = "rg-${local.short}-${local.loc}-${local.env}-01"
   gallery_name          = "gal${local.short}${local.loc}${local.env}01"
   gallery_rg_name       = local.rg_name
   managed_identity_name = "uid-${local.short}-${local.loc}-${local.env}-01"
