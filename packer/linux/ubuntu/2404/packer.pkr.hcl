@@ -43,15 +43,9 @@ variable "image_os" {
   description = "Used in scripts"
 }
 
-variable "image_version" {
-  type        = string
-  default     = formatdate("YYYYMM.DD.hhmmss", timestamp())
-  description = "Used in scripts"
-}
-
 locals {
   image_os              = var.image_os
-  image_version         = var.image_version
+  image_version         = formatdate("YYYYMM.DD.hhmmss", timestamp())
   short                 = "libd"
   env                   = "dev"
   loc                   = "dev"
