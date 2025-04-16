@@ -246,7 +246,6 @@ build {
   provisioner "ansible" {
     playbook_file = "${path.root}/ansible/installers/ensure-update.yaml"
 
-    use_sudo  = true
     user      = "packer"
     extra_arguments = [
       "--become",
