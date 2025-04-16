@@ -138,33 +138,28 @@ source "azure-arm" "build" {
 build {
   sources = ["source.azure-arm.build"]
 
-  # Creates a folder for the prep of the image - Needed
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
   }
 
-  # Fixes an error in the Linux machine which causes the WALinuxAgent to break - https://github.com/Azure/azure-linux-extensions/issues/1238 - Needed
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     script          = "${path.root}/scripts/base/apt-mock.sh"
   }
 
-  # Adds various repos to the image, such as the Microsoft one - Needed
   provisioner "shell" {
     environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts          = ["${path.root}/scripts/base/repos.sh"]
   }
 
-  # Preps a bunch of apt services - Needed
   provisioner "shell" {
     environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     script           = "${path.root}/scripts/base/apt.sh"
   }
 
-  # Sets Pam limits - Potentially Unneeded
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     script          = "${path.root}/scripts/base/limits.sh"
@@ -182,45 +177,38 @@ build {
     source      = "${path.root}/scripts/installers"
   }
 
-  # Creates folder - Needed
   provisioner "file" {
     destination = "${var.image_folder}"
     source      = "${path.root}/post-generation"
   }
 
-  # Creates folder - Needed
   provisioner "file" {
     destination = "${var.image_folder}"
     source      = "${path.root}/scripts/tests"
   }
 
-  # Creates folder - Needed
   provisioner "file" {
     destination = "${var.image_folder}"
     source      = "${path.root}/scripts/SoftwareReport"
   }
 
-  # Loads JSON file with toolset within - Needed
   provisioner "file" {
     destination = "${var.installer_script_folder}/toolset.json"
     source      = "${path.root}/toolsets/toolset.json"
   }
 
-  # Primes image data file - Probably Unneeded, leaving
   provisioner "shell" {
     environment_vars = ["IMAGE_VERSION=${local.image_version}", "IMAGEDATA_FILE=${var.imagedata_file}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts          = ["${path.root}/scripts/installers/preimagedata.sh"]
   }
 
-  # Configures OS environment - Needed
   provisioner "shell" {
     environment_vars = ["IMAGE_VERSION=${local.image_version}", "IMAGE_OS=${var.image_os}", "HELPER_SCRIPTS=${var.helper_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts          = ["${path.root}/scripts/installers/configure-environment.sh"]
   }
 
-  # Configures Snapstore
   provisioner "shell" {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -230,7 +218,6 @@ build {
     ]
   }
 
-  # Configures Snapstore
   provisioner "shell" {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -239,7 +226,6 @@ build {
       "${path.root}/scripts/installers/powershellcore.sh"
     ]
   }
-
 
   provisioner "ansible" {
     playbook_file = "${path.root}/ansible/installers/ensure-update.yaml"
@@ -250,14 +236,11 @@ build {
       "--become-user=root"
     ]
 
-    # Optionally disable host-key checking if needed:
     ansible_env_vars = [
       "ANSIBLE_HOST_KEY_CHECKING=False"
     ]
   }
 
-
-  # Install PowerShell Modules - Needed
   provisioner "shell" {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
@@ -266,7 +249,6 @@ build {
     ]
   }
 
-  # Installs packages added in the installers dir - Needed
   provisioner "shell" {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "DEBIAN_FRONTEND=noninteractive"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -286,7 +268,6 @@ build {
     scripts          = ["${path.root}/scripts/installers/homebrew.sh"]
   }
 
-  # Installs everything in toolset.json as part of the toolcache section (which is basically everything) - Needed
   provisioner "shell" {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
@@ -296,27 +277,23 @@ build {
     ]
   }
 
-  # Installs everything in the PipX section - Needed
   provisioner "shell" {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts          = ["${path.root}/scripts/installers/pipx-packages.sh"]
   }
 
-  # Restarts the snapd - Needed
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     script          = "${path.root}/scripts/base/snap.sh"
   }
 
-  # Reboots the VM - Needed
   provisioner "shell" {
     execute_command   = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
     expect_disconnect = true
     scripts           = ["${path.root}/scripts/base/reboot.sh"]
   }
 
-  # Cleans up junk - Needed
   provisioner "shell" {
     execute_command     = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     pause_before        = "1m0s"
@@ -324,19 +301,16 @@ build {
     start_retry_timeout = "10m"
   }
 
-  # Removes apt mock - Needed
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     script          = "${path.root}/scripts/base/apt-mock-remove.sh"
   }
 
-  # Runs Pester tests - Needed
   provisioner "shell" {
     environment_vars = ["IMAGE_VERSION=${local.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
     inline           = ["pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
   }
 
-  # Post-deployment - Needed
   provisioner "shell" {
     environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
