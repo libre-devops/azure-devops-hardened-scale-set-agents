@@ -225,8 +225,8 @@ build {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts = [
-    "${path.root}/scripts/installers/complete-snap-setup.sh",
-    "${path.root}/scripts/installers/powershellcore.sh"
+      "${path.root}/scripts/installers/complete-snap-setup.sh",
+      "${path.root}/scripts/installers/powershellcore.sh"
     ]
   }
 
@@ -244,7 +244,7 @@ build {
   provisioner "ansible" {
     playbook_file = "${path.root}/ansible/installers/ensure-update.yaml"
 
-    user      = "packer"
+    user = "packer"
     extra_arguments = [
       "--become",
       "--become-user=root"
@@ -342,6 +342,38 @@ build {
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts          = ["${path.root}/scripts/installers/post-deployment.sh"]
   }
+
+  provisioner "shell" {
+    environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
+    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    scripts = [
+      "${path.root}/scripts/installers/complete-snap-setup.sh",
+      "${path.root}/scripts/installers/powershellcore.sh"
+    ]
+  }
+
+  provisioner "ansible" {
+    playbook_file = "${path.root}/ansible/cis-hardening/tasks/main.yml"
+
+    user = "packer"
+    extra_arguments = [
+      "--become",
+      "--become-user=root"
+    ]
+
+    # Optionally disable host-key checking if needed:
+    ansible_env_vars = [
+      "ANSIBLE_HOST_KEY_CHECKING=False"
+    ]
+  }
+
+  # Reboots the VM - Needed
+  provisioner "shell" {
+    execute_command   = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
+    expect_disconnect = true
+    scripts           = ["${path.root}/scripts/base/reboot.sh"]
+  }
+
 
   # Adds Linux VM Agent for Azure - not Needed but extremely useful, so leaving.
   provisioner "shell" {
