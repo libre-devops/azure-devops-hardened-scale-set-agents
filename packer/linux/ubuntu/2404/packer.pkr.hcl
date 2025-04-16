@@ -240,9 +240,7 @@ build {
     ]
   }
 
-  # ======================================================================
-  # Ansible Provisioner
-  # ======================================================================
+
   provisioner "ansible" {
     playbook_file = "${path.root}/ansible/installers/ensure-update.yaml"
 
