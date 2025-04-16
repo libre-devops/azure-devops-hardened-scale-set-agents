@@ -28,7 +28,7 @@ foreach ($module in $modules) {
 _LogMessage -Level "INFO" -Message "$timestamp - [$( $MyInvocation.MyCommand.Name )] Modules loaded successfully" -InvocationName "$($MyInvocation.MyCommand.Name)"
 
 # Test pre-requisites are done
-Get-InstalledPrograms -Programs @("packer", "az")
+Get-InstalledPrograms -Programs @("packer", "az", "ansible")
 
 # Only run 0login and environment checks if ManualRun is true
 if ($ManualRun) {
