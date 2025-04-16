@@ -108,7 +108,8 @@
         {"name": "tenv"},
         {"name": "kubernetes-cli"},
         {"name": "azure-cli"},
-        {"name": "gh"}
+        {"name": "gh"},
+        {"name": "ansible"}
     ],
     "docker": {},
     "pipx": [
