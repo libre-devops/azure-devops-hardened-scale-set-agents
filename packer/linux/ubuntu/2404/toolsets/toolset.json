@@ -95,6 +95,7 @@
         ]
     },
     "brew": [
+        {"name": "gcc"},
         {"name": "zstd"},
         {"name": "go"},
         {"name": "pipx"},
