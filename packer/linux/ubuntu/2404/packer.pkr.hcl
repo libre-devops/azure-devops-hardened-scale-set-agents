@@ -285,21 +285,6 @@ build {
     inline           = ["pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
   }
 
-  provisioner "shell" {
-    environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
-    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts          = ["${path.root}/scripts/installers/post-deployment.sh"]
-  }
-
-  provisioner "shell" {
-    environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
-    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts = [
-      "${path.root}/scripts/installers/complete-snap-setup.sh",
-      "${path.root}/scripts/installers/powershellcore.sh"
-    ]
-  }
-
   provisioner "ansible" {
     playbook_file = "${path.root}/ansible/cis-hardening/tasks/main.yml"
 
@@ -318,6 +303,12 @@ build {
     execute_command   = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
     expect_disconnect = true
     scripts           = ["${path.root}/scripts/base/reboot.sh"]
+  }
+
+  provisioner "shell" {
+    environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
+    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    scripts          = ["${path.root}/scripts/installers/post-deployment.sh"]
   }
 
   provisioner "shell" {
