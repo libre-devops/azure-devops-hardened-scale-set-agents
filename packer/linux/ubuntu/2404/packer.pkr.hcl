@@ -4,6 +4,10 @@ packer {
       source  = "github.com/hashicorp/azure"
       version = "~>2.0.4"
     }
+    ansible = {
+      source  = "github.com/hashicorp/ansible"
+      version = ">= 1.1.2"
+    }
   }
 }
 
