@@ -335,21 +335,17 @@ build {
       "--become-user=root"
     ]
 
-    # Optionally disable host-key checking if needed:
     ansible_env_vars = [
       "ANSIBLE_HOST_KEY_CHECKING=False"
     ]
   }
 
-  # Reboots the VM - Needed
   provisioner "shell" {
     execute_command   = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
     expect_disconnect = true
     scripts           = ["${path.root}/scripts/base/reboot.sh"]
   }
 
-
-  # Adds Linux VM Agent for Azure - not Needed but extremely useful, so leaving.
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
