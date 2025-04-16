@@ -52,3 +52,9 @@ Describe "Apt" {
         (Get-Command -Name $toolName).CommandType | Should -BeExactly "Application"
     }
 }
+
+Describe "bicep" {
+    It "bicep" {
+        "bicep --help" | Should -ReturnZeroExitCode
+    }
+}

@@ -11,5 +11,10 @@ for package in $common_packages $cmd_packages; do
     echo "Install $package"
     apt-get install -y --no-install-recommends $package
 done
+curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+# Mark it as executable
+chmod +x ./bicep
+# Add bicep to your PATH (requires admin)
+sudo mv ./bicep /usr/local/bin/bicep
 
 invoke_tests "Apt"

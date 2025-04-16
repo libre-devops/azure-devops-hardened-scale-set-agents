@@ -109,25 +109,9 @@
         {"name": "kubernetes-cli"},
         {"name": "azure-cli"},
         {"name": "gh"},
-        {"name": "ansible"}
+        {"name": "ansible"},
+        {"name": "checkov"}
     ],
     "docker": {},
-    "pipx": [
-        {
-            "package": "yamllint",
-            "cmd": "yamllint"
-        },
-        {
-            "package": "ansible",
-            "cmd": "ansible"
-        },
-        {
-            "package": "terraform-compliance",
-            "cmd": "terraform-compliance"
-        },
-        {
-            "package": "checkov",
-            "cmd": "checkov"
-        }
-    ]
+    "pipx": []
 }

@@ -48,3 +48,4 @@ Describe "yq" {
         "yq -V" | Should -ReturnZeroExitCode
     }
 }
+
