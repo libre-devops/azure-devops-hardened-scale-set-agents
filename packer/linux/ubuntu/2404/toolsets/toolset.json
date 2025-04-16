@@ -97,6 +97,7 @@
     "brew": [
         {"name": "zstd"},
         {"name": "go"},
+        {"name": "pipx"},
         {"name": "terraform-docs"},
         {"name": "colordiff"},
         {"name": "tenv"},
