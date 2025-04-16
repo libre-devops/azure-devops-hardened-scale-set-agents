@@ -97,8 +97,6 @@
     "brew": [
         {"name": "zstd"},
         {"name": "terraform-docs"},
-        {"name": "kubeval"},
-        {"name": "kubeaudit"},
         {"name": "colordiff"},
         {"name": "tenv"},
         {"name": "kubernetes-cli"}
