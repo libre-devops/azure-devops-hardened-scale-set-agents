@@ -96,7 +96,11 @@
     },
     "brew": [
         {"name": "gcc"},
+        {"name": "git"},
+        {"name": "python"},
         {"name": "zstd"},
+        {"name": "jq"},
+        {"name": "kustomize"},
         {"name": "go"},
         {"name": "pipx"},
         {"name": "terraform-docs"},
