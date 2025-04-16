@@ -1,0 +1,15 @@
+---
+- name: Ensure Ubuntu is up-to-date
+  hosts: all
+  become: yes  # Elevate privileges
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes

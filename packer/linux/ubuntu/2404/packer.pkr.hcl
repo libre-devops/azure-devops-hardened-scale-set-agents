@@ -216,7 +216,7 @@ build {
     scripts          = ["${path.root}/scripts/installers/configure-environment.sh"]
   }
 
-  # Configures Snapstore (ew) - Needed
+  # Configures Snapstore
   provisioner "shell" {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -225,6 +225,36 @@ build {
     "${path.root}/scripts/installers/powershellcore.sh"
     ]
   }
+
+  # Configures Snapstore
+  provisioner "shell" {
+    environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
+    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    scripts = [
+      "${path.root}/scripts/installers/complete-snap-setup.sh",
+      "${path.root}/scripts/installers/powershellcore.sh"
+    ]
+  }
+
+  # ======================================================================
+  # Ansible Provisioner
+  # ======================================================================
+  provisioner "ansible" {
+    playbook_file = "${path.root}/ansible/installers/ensure-update.yaml"
+
+    use_sudo  = true
+    user      = "packer"
+    extra_arguments = [
+      "--become",
+      "--become-user=root"
+    ]
+
+    # Optionally disable host-key checking if needed:
+    ansible_env_vars = [
+      "ANSIBLE_HOST_KEY_CHECKING=False"
+    ]
+  }
+
 
   # Install PowerShell Modules - Needed
   provisioner "shell" {
