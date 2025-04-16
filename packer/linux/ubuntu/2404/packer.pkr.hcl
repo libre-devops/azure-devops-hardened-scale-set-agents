@@ -286,7 +286,7 @@ build {
   }
 
   provisioner "ansible" {
-    playbook_file = "${path.root}/ansible/cis-hardening/tasks/main.yml"
+    playbook_file = "${path.root}/ansible/cis-hardening/tasks/site.yml"
 
     user = "packer"
     extra_arguments = [
