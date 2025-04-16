@@ -47,6 +47,12 @@ variable "image_os" {
   description = "Used in scripts"
 }
 
+variable "install_password" {
+  type      = string
+  default   = env("PKR_VAR_install_password")
+  sensitive = true
+}
+
 locals {
   image_os              = var.image_os
   image_version         = formatdate("YYYYMM.DD.hhmmss", timestamp())
@@ -283,6 +289,19 @@ build {
   provisioner "shell" {
     environment_vars = ["IMAGE_VERSION=${local.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
     inline           = ["pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
+  }
+
+
+  provisioner "shell" {
+    # expose the secret to the script, but never print it
+    environment_vars = ["INSTALL_PASSWORD=${var.install_password}"]
+
+    execute_command = "sudo bash -c '{{ .Vars }} {{ .Path }}'"
+    inline = [
+      # Hash the password and apply it
+      "PASS_HASH=$(openssl passwd -6 \"${INSTALL_PASSWORD}\")",
+      "usermod --password \"${PASS_HASH}\" packer"
+    ]
   }
 
   provisioner "ansible" {

@@ -26,6 +26,8 @@ setEtcEnvironmentVariable HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS 3650
 echo "Validate the installation reloading /etc/environment"
 reloadEtcEnvironment
 
+brew tap databricks/tap
+
 # Install additional brew packages
 brew_packages=$(get_toolset_value .brew[].name)
 for package in $brew_packages; do
@@ -36,6 +38,8 @@ for package in $brew_packages; do
         find $(brew --prefix)/bin -name *zstd* -exec sudo sh -c 'ln -s {} /usr/local/bin/$(basename {})' ';'
     fi
 done
+
+
 
 tenv tf install latest --verbose && \
     tenv tf use latest --verbose && \

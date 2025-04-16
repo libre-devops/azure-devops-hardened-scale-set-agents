@@ -19,6 +19,11 @@ function isUbuntu22
     lsb_release -d | grep -q 'Ubuntu 22'
 }
 
+function isUbuntu24
+{
+    lsb_release -d | grep -q 'Ubuntu 24'
+}
+
 function getOSVersionLabel
 {
     lsb_release -cs

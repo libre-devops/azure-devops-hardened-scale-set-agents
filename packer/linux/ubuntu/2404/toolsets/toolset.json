@@ -111,7 +111,8 @@
         {"name": "gh"},
         {"name": "ansible"},
         {"name": "checkov"},
-        {"name": "podman-compose"}
+        {"name": "podman-compose"},
+        {"name": "databricks"}
     ],
     "docker": {},
     "pipx": []
