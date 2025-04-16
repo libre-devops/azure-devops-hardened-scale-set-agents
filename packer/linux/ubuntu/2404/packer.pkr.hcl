@@ -292,15 +292,19 @@ build {
   }
 
 
+  #################################################################
+  # Give the packer user a SHA‑512 password for CIS rule 5.2.4
+  #################################################################
   provisioner "shell" {
-    # expose the secret to the script, but never print it
-    environment_vars = ["INSTALL_PASSWORD=${var.install_password}"]
+    # Inject the secret value; Packer marks var.install_password as sensitive
+    environment_vars = [
+      "INSTALL_PASSWORD=${var.install_password}"
+    ]
 
-    execute_command = "sudo bash -c '{{ .Vars }} {{ .Path }}'"
+    # Default inline interpreter is /bin/sh; sudo once inside the command
     inline = [
-      # Hash the password and apply it
-      "PASS_HASH=$(openssl passwd -6 \"${INSTALL_PASSWORD}\")",
-      "usermod --password \"${PASS_HASH}\" packer"
+      # Hash and apply in a single line to avoid leaking the hash
+      "sudo usermod --password \"$(openssl passwd -6 \"$INSTALL_PASSWORD\")\" packer"
     ]
   }
 
