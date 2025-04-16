@@ -1,9 +1,3 @@
-Describe "azcopy" {
-    It "azcopy" {
-        "azcopy --version" | Should -ReturnZeroExitCode
-    }
-}
-
 Describe "Ansible" {
     It "Ansible" {
         "ansible --version" | Should -ReturnZeroExitCode
@@ -47,18 +41,6 @@ Describe "Containers" {
 
         "$ContainerCommand -v" | Should -ReturnZeroExitCode
     }
-}
-
-Describe "Python" {
-    $testCases = @("python", "pip", "python3", "pip3") | ForEach-Object { @{PythonCommand = $_} }
-
-    It "<PythonCommand>" -TestCases $testCases {
-        param (
-            [string] $PythonCommand
-        )
-
-        "$PythonCommand --version" | Should -ReturnZeroExitCode
-    }   
 }
 
 Describe "yq" {

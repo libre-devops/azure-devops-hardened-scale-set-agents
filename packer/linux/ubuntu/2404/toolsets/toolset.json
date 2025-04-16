@@ -106,7 +106,9 @@
         {"name": "terraform-docs"},
         {"name": "colordiff"},
         {"name": "tenv"},
-        {"name": "kubernetes-cli"}
+        {"name": "kubernetes-cli"},
+        {"name": "azure-cli"},
+        {"name": "gh"}
     ],
     "docker": {},
     "pipx": [
