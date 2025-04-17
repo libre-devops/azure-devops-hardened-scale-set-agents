@@ -308,6 +308,18 @@ build {
     ]
   }
 
+  provisioner "shell" {
+    environment_vars = [
+      # Re‑use the existing secret, or make a new var root_password
+      "ROOT_PASSWORD=${var.install_password}"
+    ]
+
+    inline = [
+      # Hash + apply in a single line; avoids logging the hash
+      "sudo usermod --password \"$(openssl passwd -6 \"$ROOT_PASSWORD\")\" root"
+    ]
+  }
+
   provisioner "ansible" {
     playbook_file = "${path.root}/ansible/cis-hardening/site.yml"
 
