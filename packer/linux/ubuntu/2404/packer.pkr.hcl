@@ -386,73 +386,51 @@ build {
   }
 
   ########################################################################
-  # SECURITY – Set local passwords required by CIS rules 5.2.4 & 5.4.2.4
-  ########################################################################
-  provisioner "shell" {
-    environment_vars = ["INSTALL_PASSWORD=${var.install_password}"]
-    inline = [
-      "sudo usermod --password \"$(openssl passwd -6 \"$INSTALL_PASSWORD\")\" packer"
-    ]
-  }
-
-  provisioner "shell" {
-    environment_vars = ["ROOT_PASSWORD=${var.install_password}"]
-    inline = [
-      "sudo usermod --password \"$(openssl passwd -6 \"$ROOT_PASSWORD\")\" root"
-    ]
-  }
-
-  ########################################################################
   # SECURITY – Run CIS hardening role (Ansible)
   ########################################################################
   provisioner "ansible" {
     playbook_file   = "${path.root}/ansible/cis-hardening/site.yml"
     user            = "packer"
-    extra_arguments = ["--become", "--become-user=root"]
+    extra_arguments = [
+      "--become",
+      "--become-user=root",
+      "-e", "ubtu24cis_rule_5_2_4=false",
+      "-e", "ubtu24cis_rule_5_4_2_4=false"
+    ]
     ansible_env_vars = [
       "ANSIBLE_HOST_KEY_CHECKING=False",
-      "ANSIBLE_BECOME_PASS=${var.install_password}"
     ]
   }
 
-  #######################################################################
-  # REBOOT – Required after CIS removed NOPASSWD
-  #######################################################################
+  ########################################################################
+  # REBOOT – Required after CIS removed NOPASSWD from sudoers
+  ########################################################################
   provisioner "shell" {
-    environment_vars = [
-      "SUDO_PASS=${var.install_password}"
-    ]
-
-    # HashiCorp‑recommended form — no single‑quotes around {{ .Vars }}
-    execute_command = "echo \"$SUDO_PASS\" | sudo -S env {{ .Vars }} {{ .Path }}"
-
+    execute_command   = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
     expect_disconnect = true
     scripts           = ["${path.root}/scripts/base/reboot.sh"]
   }
 
-  #######################################################################
-  # POST‑DEPLOYMENT – Final configuration under strict sudo rules
-  #######################################################################
+  ########################################################################
+  # POST‑DEPLOYMENT – Final configuration under strict sudo rules
+  ########################################################################
   provisioner "shell" {
     environment_vars = [
-      "SUDO_PASS=${var.install_password}",
       "HELPER_SCRIPT_FOLDER=${var.helper_script_folder}",
       "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
       "IMAGE_FOLDER=${var.image_folder}"
     ]
-
-    execute_command = "echo \"$SUDO_PASS\" | sudo -S env {{ .Vars }} {{ .Path }}"
-    scripts         = ["${path.root}/scripts/installers/post-deployment.sh"]
+    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    scripts          = ["${path.root}/scripts/installers/post-deployment.sh"]
   }
 
-  #######################################################################
-  # SYSPREP – Deprovision VM for Azure SIG publishing
-  #######################################################################
+  ########################################################################
+  # SYSPREP – Deprovision VM for Azure SIG publishing
+  ########################################################################
   provisioner "shell" {
-    environment_vars = ["SUDO_PASS=${var.install_password}"]
-
+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
-      "echo \"$SUDO_PASS\" | sudo -S env {{ .Vars }} /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+      "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
     ]
   }
 }
