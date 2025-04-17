@@ -112,7 +112,8 @@
         {"name": "ansible"},
         {"name": "checkov"},
         {"name": "podman-compose"},
-        {"name": "databricks"}
+        {"name": "databricks"},
+        {"name": "pyenv"}
     ],
     "docker": {},
     "pipx": []
