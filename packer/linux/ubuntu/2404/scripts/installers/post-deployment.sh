@@ -1,39 +1,46 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 ################################################################################
 ##  File: post-deployment.sh
-##  Desc: Post deployment actions
+##  Desc: Post‑deployment actions – verbose with plain echo statements
 ################################################################################
+set -euxo pipefail          # stop on error, show commands, fail on pipe errors
 
-mv -f /imagegeneration/post-generation /opt
+echo ">> Move post‑generation directory to /opt …"
+mv -fv /imagegeneration/post-generation /opt
+echo "   mv exit code = $?"
 
-echo "chmod -R 777 /opt"
-chmod -R 777 /opt
-echo "chmod -R 777 /usr/share"
-chmod -R 777 /usr/share
+echo ">> chmod -R 777 /opt …"
+chmod -Rv 777 /opt || { echo "   chmod on /opt failed – exiting"; exit 1; }
 
-# remove installer and helper folders
-rm -rf $HELPER_SCRIPT_FOLDER
-rm -rf $INSTALLER_SCRIPT_FOLDER
-chmod 755 $IMAGE_FOLDER
+echo ">> chmod -R 777 /usr/share … (may fail on immutable files)"
+if chmod -Rv 777 /usr/share ; then
+  echo "   /usr/share chmod completed"
+else
+  echo "   Ignoring chmod errors under /usr/share"
+fi
 
-# Remove quotes around PATH
-ENVPATH=$(grep 'PATH=' /etc/environment | head -n 1 | sed -z 's/^PATH=*//')
-ENVPATH=${ENVPATH#"\""}
-ENVPATH=${ENVPATH%"\""}
+echo ">> Remove helper + installer folders …"
+rm -rfv "${HELPER_SCRIPT_FOLDER:?}" "${INSTALLER_SCRIPT_FOLDER:?}"
+
+echo ">> Set permissions on \$IMAGE_FOLDER ($IMAGE_FOLDER) …"
+chmod -v 755 "$IMAGE_FOLDER"
+
+echo ">> Normalise PATH in /etc/environment …"
+ENVPATH=$(grep -m1 '^PATH=' /etc/environment | cut -d= -f2- | tr -d '"')
 echo "PATH=$ENVPATH" | sudo tee -a /etc/environment
-echo "Updated /etc/environment: $(cat /etc/environment)"
+echo "   New /etc/environment:"
+cat /etc/environment
 
-# https://github.com/actions/virtual-environments/blob/main/docs/create-image-and-azure-resources.md#post-generation-scripts
-find /opt/post-generation -mindepth 1 -maxdepth 1 -type f -name "*.sh" -exec bash {} \;
+echo ">> Run any post‑generation scripts …"
+/usr/bin/find /opt/post-generation \
+  -mindepth 1 -maxdepth 1 -type f -name "*.sh" -print -exec bash -eux {} \;
 
+echo ">> Read PATH back from /etc/environment …"
+pathFromEnv=$(tail -n1 /etc/environment | cut -d= -f2-)
+printf "   pathFromEnv: %s\\n" "$pathFromEnv"
 
-# get path information from /etc/environment
-pathFromEnv=$(cut -d= -f2 /etc/environment | tail -1)
-printf "pathFromEnv:\n %s\n" "$pathFromEnv"
-
-# update /etc/sudoers secure_path
-sed -i.bak "/secure_path/d" /etc/sudoers
-echo "Defaults secure_path=$pathFromEnv" >> /etc/sudoers
-
-# debug
-cat /etc/sudoers
+echo ">> Update secure_path in /etc/sudoers …"
+sudo sed -i.bak '/secure_path/d' /etc/sudoers
+echo "Defaults secure_path=$pathFromEnv" | sudo tee -a /etc/sudoers
+echo "   Final lines of /etc/sudoers:"
+sudo tail -n 5 /etc/sudoers
