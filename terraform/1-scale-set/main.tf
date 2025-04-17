@@ -112,7 +112,7 @@ module "bastion" {
 module "azdo_spn" {
   source = "github.com/libre-devops/terraform-azuredevops-federated-managed-identity-connection"
 
-  rg_id    = module.rg.rg_id
+  rg_id    = format("/subscriptions/%s/resourceGroups/%s", data.azurerm_client_config.current.subscription_id, local.rg_name)
   location = module.rg.rg_location
   tags     = module.rg.rg_tags
 
@@ -142,7 +142,7 @@ module "linux_vm_scale_set" {
       sku                             = "Standard_D4ds_v5"
       use_simple_image                = false
       use_custom_image                = true
-      source_image_id                 = data.azurerm_shared_image.azdo_ubuntu_image.id
+      custom_source_image_id                 = data.azurerm_shared_image.azdo_ubuntu_image.id
       disable_password_authentication = true
       overprovision                   = false    # Azure DevOps will set overprovision to false
       upgrade_mode                    = "Manual" # Azure DevOps will set to Manual anyway
@@ -258,12 +258,12 @@ data "azuredevops_project" "project" {
 }
 
 resource "azuredevops_elastic_pool" "azure_pool" {
-  name                   = local.deploy_windows_vmss == true ? module.windows_vm_scale_set.ss_name[local.scale_set_name] : module.linux_vm_scale_set.ss_name[local.scale_set_name]
+  name                   = local.deploy_windows_vmss == true ? module.windows_vm_scale_set[0].ss_name[local.scale_set_name] : module.linux_vm_scale_set[0].ss_name[local.scale_set_name]
   service_endpoint_id    = module.azdo_spn.service_endpoint_id
   service_endpoint_scope = data.azuredevops_project.project.id
   desired_idle           = 1
   max_capacity           = 2
-  azure_resource_id      = local.deploy_windows_vmss == true ? module.windows_vm_scale_set.ss_name[local.scale_set_name] : module.linux_vm_scale_set.ss_name[local.scale_set_name]
+  azure_resource_id      = local.deploy_windows_vmss == true ? module.windows_vm_scale_set[0].ss_id[local.scale_set_name] : module.linux_vm_scale_set[0].ss_id[local.scale_set_name]
   recycle_after_each_use = false
   time_to_live_minutes   = 30
   agent_interactive_ui   = false

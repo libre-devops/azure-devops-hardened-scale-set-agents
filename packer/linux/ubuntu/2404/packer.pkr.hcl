@@ -246,144 +246,144 @@ build {
     source      = "${path.root}/toolsets/toolset.json"
   }
 
-  ########################################################################
-  # CONFIG – Base environment variables inside image
-  ########################################################################
-  provisioner "shell" {
-    environment_vars = [
-      "IMAGE_VERSION=${local.image_version}",
-      "IMAGE_OS=${var.image_os}",
-      "HELPER_SCRIPTS=${var.helper_script_folder}"
-    ]
-    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts         = ["${path.root}/scripts/installers/configure-environment.sh"]
-  }
-
-  ########################################################################
-  # CONFIG – Snap store + PowerShell Core
-  ########################################################################
-  provisioner "shell" {
-    environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
-    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts = [
-      "${path.root}/scripts/installers/complete-snap-setup.sh",
-      "${path.root}/scripts/installers/powershellcore.sh"
-    ]
-  }
-
-  ########################################################################
-  # CONFIG – Repeat Snap setup (idempotent safeguard)
-  ########################################################################
-  provisioner "shell" {
-    environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
-    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts = [
-      "${path.root}/scripts/installers/complete-snap-setup.sh",
-      "${path.root}/scripts/installers/powershellcore.sh"
-    ]
-  }
-
-  ########################################################################
-  # APT – Ensure latest security updates via Ansible (ensure-update.yaml)
-  ########################################################################
-  provisioner "ansible" {
-    playbook_file    = "${path.root}/ansible/installers/ensure-update.yaml"
-    user             = "packer"
-    extra_arguments  = ["--become", "--become-user=root"]
-    ansible_env_vars = ["ANSIBLE_HOST_KEY_CHECKING=False"]
-  }
-
-  ########################################################################
-  # INSTALL – PowerShell modules for build agents
-  ########################################################################
-  provisioner "shell" {
-    environment_vars = [
-      "HELPER_SCRIPTS=${var.helper_script_folder}",
-      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"
-    ]
-    execute_command = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-    scripts         = ["${path.root}/scripts/installers/Install-PowerShellModules.ps1"]
-  }
-
-  ########################################################################
-  # INSTALL – Core developer tools (basic.sh, containers.sh …)
-  ########################################################################
-  provisioner "shell" {
-    environment_vars = [
-      "HELPER_SCRIPTS=${var.helper_script_folder}",
-      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
-      "DEBIAN_FRONTEND=noninteractive"
-    ]
-    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts = [
-      "${path.root}/scripts/installers/basic.sh",
-      "${path.root}/scripts/installers/containers.sh",
-      "${path.root}/scripts/installers/git.sh",
-      "${path.root}/scripts/installers/dpkg-config.sh",
-      "${path.root}/scripts/installers/yq.sh"
-    ]
-  }
-
-  ########################################################################
-  # INSTALL – Homebrew on Linux
-  ########################################################################
-  provisioner "shell" {
-    environment_vars = [
-      "HELPER_SCRIPTS=${var.helper_script_folder}",
-      "DEBIAN_FRONTEND=noninteractive",
-      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"
-    ]
-    execute_command = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts         = ["${path.root}/scripts/installers/homebrew.sh"]
-  }
-
-  ########################################################################
-  # CONFIG – Restart snapd service after installations
-  ########################################################################
-  provisioner "shell" {
-    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    script          = "${path.root}/scripts/base/snap.sh"
-  }
-
-  ########################################################################
-  # REBOOT – Clean VM state before continuing heavy installs
-  ########################################################################
-  provisioner "shell" {
-    execute_command   = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
-    expect_disconnect = true
-    scripts           = ["${path.root}/scripts/base/reboot.sh"]
-  }
-
-  ########################################################################
-  # CLEAN – Remove caches & unwanted packages
-  ########################################################################
-  provisioner "shell" {
-    execute_command     = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    pause_before        = "1m0s"
-    scripts             = ["${path.root}/scripts/installers/cleanup.sh"]
-    start_retry_timeout = "10m"
-  }
-
-  ########################################################################
-  # CLEAN – Remove APT mock once real installations are complete
-  ########################################################################
-  provisioner "shell" {
-    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    script          = "${path.root}/scripts/base/apt-mock-remove.sh"
-  }
-
-  ########################################################################
-  # TEST – Run Pester tests against the configured image
-  ########################################################################
-  provisioner "shell" {
-    environment_vars = [
-      "IMAGE_VERSION=${local.image_version}",
-      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"
-    ]
-    inline = [
-      "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"
-    ]
-  }
+  # ########################################################################
+  # # CONFIG – Base environment variables inside image
+  # ########################################################################
+  # provisioner "shell" {
+  #   environment_vars = [
+  #     "IMAGE_VERSION=${local.image_version}",
+  #     "IMAGE_OS=${var.image_os}",
+  #     "HELPER_SCRIPTS=${var.helper_script_folder}"
+  #   ]
+  #   execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+  #   scripts         = ["${path.root}/scripts/installers/configure-environment.sh"]
+  # }
+  #
+  # ########################################################################
+  # # CONFIG – Snap store + PowerShell Core
+  # ########################################################################
+  # provisioner "shell" {
+  #   environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
+  #   execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+  #   scripts = [
+  #     "${path.root}/scripts/installers/complete-snap-setup.sh",
+  #     "${path.root}/scripts/installers/powershellcore.sh"
+  #   ]
+  # }
+  #
+  # ########################################################################
+  # # CONFIG – Repeat Snap setup (idempotent safeguard)
+  # ########################################################################
+  # provisioner "shell" {
+  #   environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
+  #   execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+  #   scripts = [
+  #     "${path.root}/scripts/installers/complete-snap-setup.sh",
+  #     "${path.root}/scripts/installers/powershellcore.sh"
+  #   ]
+  # }
+  #
+  # ########################################################################
+  # # APT – Ensure latest security updates via Ansible (ensure-update.yaml)
+  # ########################################################################
+  # provisioner "ansible" {
+  #   playbook_file    = "${path.root}/ansible/installers/ensure-update.yaml"
+  #   user             = "packer"
+  #   extra_arguments  = ["--become", "--become-user=root"]
+  #   ansible_env_vars = ["ANSIBLE_HOST_KEY_CHECKING=False"]
+  # }
+  #
+  # ########################################################################
+  # # INSTALL – PowerShell modules for build agents
+  # ########################################################################
+  # provisioner "shell" {
+  #   environment_vars = [
+  #     "HELPER_SCRIPTS=${var.helper_script_folder}",
+  #     "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"
+  #   ]
+  #   execute_command = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
+  #   scripts         = ["${path.root}/scripts/installers/Install-PowerShellModules.ps1"]
+  # }
+  #
+  # ########################################################################
+  # # INSTALL – Core developer tools (basic.sh, containers.sh …)
+  # ########################################################################
+  # provisioner "shell" {
+  #   environment_vars = [
+  #     "HELPER_SCRIPTS=${var.helper_script_folder}",
+  #     "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
+  #     "DEBIAN_FRONTEND=noninteractive"
+  #   ]
+  #   execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+  #   scripts = [
+  #     "${path.root}/scripts/installers/basic.sh",
+  #     "${path.root}/scripts/installers/containers.sh",
+  #     "${path.root}/scripts/installers/git.sh",
+  #     "${path.root}/scripts/installers/dpkg-config.sh",
+  #     "${path.root}/scripts/installers/yq.sh"
+  #   ]
+  # }
+  #
+  # ########################################################################
+  # # INSTALL – Homebrew on Linux
+  # ########################################################################
+  # provisioner "shell" {
+  #   environment_vars = [
+  #     "HELPER_SCRIPTS=${var.helper_script_folder}",
+  #     "DEBIAN_FRONTEND=noninteractive",
+  #     "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"
+  #   ]
+  #   execute_command = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
+  #   scripts         = ["${path.root}/scripts/installers/homebrew.sh"]
+  # }
+  #
+  # ########################################################################
+  # # CONFIG – Restart snapd service after installations
+  # ########################################################################
+  # provisioner "shell" {
+  #   execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+  #   script          = "${path.root}/scripts/base/snap.sh"
+  # }
+  #
+  # ########################################################################
+  # # REBOOT – Clean VM state before continuing heavy installs
+  # ########################################################################
+  # provisioner "shell" {
+  #   execute_command   = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
+  #   expect_disconnect = true
+  #   scripts           = ["${path.root}/scripts/base/reboot.sh"]
+  # }
+  #
+  # ########################################################################
+  # # CLEAN – Remove caches & unwanted packages
+  # ########################################################################
+  # provisioner "shell" {
+  #   execute_command     = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+  #   pause_before        = "1m0s"
+  #   scripts             = ["${path.root}/scripts/installers/cleanup.sh"]
+  #   start_retry_timeout = "10m"
+  # }
+  #
+  # ########################################################################
+  # # CLEAN – Remove APT mock once real installations are complete
+  # ########################################################################
+  # provisioner "shell" {
+  #   execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+  #   script          = "${path.root}/scripts/base/apt-mock-remove.sh"
+  # }
+  #
+  # ########################################################################
+  # # TEST – Run Pester tests against the configured image
+  # ########################################################################
+  # provisioner "shell" {
+  #   environment_vars = [
+  #     "IMAGE_VERSION=${local.image_version}",
+  #     "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"
+  #   ]
+  #   inline = [
+  #     "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"
+  #   ]
+  # }
 
   ########################################################################
   # SECURITY – Set local passwords required by CIS rules 5.2.4 & 5.4.2.4
@@ -415,19 +415,22 @@ build {
     ]
   }
 
-  ########################################################################
-  # REBOOT – Required after CIS removed NOPASSWD from sudoers
-  ########################################################################
+  #######################################################################
+  # REBOOT – Required after CIS removed NOPASSWD
+  #######################################################################
   provisioner "shell" {
     environment_vars  = ["SUDO_PASS=${var.install_password}"]
-    execute_command   = "echo \"$SUDO_PASS\" | sudo -S -p '' /bin/sh -c '{{ .Vars }} {{ .Path }}'"
+
+    # --  no {{ .Vars }}  --
+    execute_command   = "echo \"$SUDO_PASS\" | sudo -S -p \"\" /bin/sh '{{ .Path }}'"
+
     expect_disconnect = true
     scripts           = ["${path.root}/scripts/base/reboot.sh"]
   }
 
-  ########################################################################
-  # POST‑DEPLOYMENT – Final configuration under strict sudo rules
-  ########################################################################
+  #######################################################################
+  # POST‑DEPLOYMENT – Final configuration under strict sudo rules
+  #######################################################################
   provisioner "shell" {
     environment_vars = [
       "SUDO_PASS=${var.install_password}",
@@ -435,17 +438,20 @@ build {
       "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
       "IMAGE_FOLDER=${var.image_folder}"
     ]
-    execute_command = "echo \"$SUDO_PASS\" | sudo -S -p '' bash -c '{{ .Vars }} {{ .Path }}'"
+
+    execute_command = "echo \"$SUDO_PASS\" | sudo -S -p \"\" /bin/bash '{{ .Path }}'"
     scripts         = ["${path.root}/scripts/installers/post-deployment.sh"]
   }
 
-  ########################################################################
-  # SYSPREP – Deprovision VM for Azure SIG publishing
-  ########################################################################
+  #######################################################################
+  # SYSPREP – Deprovision VM for Azure SIG publishing
+  #######################################################################
   provisioner "shell" {
     environment_vars = ["SUDO_PASS=${var.install_password}"]
+
     inline = [
-      "echo \"$SUDO_PASS\" | sudo -S -p '' /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+      "echo \"$SUDO_PASS\" | sudo -S -p \"\" /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
     ]
   }
+
 }
