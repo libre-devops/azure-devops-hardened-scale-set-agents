@@ -330,7 +330,7 @@ build {
     ]
 
     ansible_env_vars = [
-      "ANSIBLE_HOST_KEY_CHECKING=False"
+      "ANSIBLE_HOST_KEY_CHECKING=False",
       "ANSIBLE_BECOME_PASS=${var.install_password}"
     ]
   }
