@@ -385,20 +385,18 @@ build {
     ]
   }
 
-  ########################################################################
-  # SECURITY – Run CIS hardening role (Ansible)
-  ########################################################################
   provisioner "ansible" {
     playbook_file   = "${path.root}/ansible/cis-hardening/site.yml"
     user            = "packer"
+
     extra_arguments = [
-      "--become",
-      "--become-user=root",
-      "-e", "ubtu24cis_rule_5_2_4=false",
-      "-e", "ubtu24cis_rule_5_4_2_4=false"
+      "--become", "--become-user=root",
+      # one JSON/YAML object guarantees proper types
+      "-e", "{ubtu24cis_rule_5_2_4: false, ubtu24cis_rule_5_4_2_4: false}"
     ]
+
     ansible_env_vars = [
-      "ANSIBLE_HOST_KEY_CHECKING=False",
+      "ANSIBLE_HOST_KEY_CHECKING=False"
     ]
   }
 
