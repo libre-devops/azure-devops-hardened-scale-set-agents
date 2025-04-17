@@ -335,12 +335,6 @@ build {
   }
 
   provisioner "shell" {
-    execute_command   = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
-    expect_disconnect = true
-    scripts           = ["${path.root}/scripts/base/reboot.sh"]
-  }
-
-  provisioner "shell" {
     environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts          = ["${path.root}/scripts/installers/post-deployment.sh"]
