@@ -419,10 +419,12 @@ build {
   # REBOOT – Required after CIS removed NOPASSWD
   #######################################################################
   provisioner "shell" {
-    environment_vars  = ["SUDO_PASS=${var.install_password}"]
+    environment_vars = [
+      "SUDO_PASS=${var.install_password}"
+    ]
 
-    # --  no {{ .Vars }}  --
-    execute_command   = "echo \"$SUDO_PASS\" | sudo -S -p \"\" /bin/sh '{{ .Path }}'"
+    # HashiCorp‑recommended form — no single‑quotes around {{ .Vars }}
+    execute_command = "echo \"$SUDO_PASS\" | sudo -S env {{ .Vars }} {{ .Path }}"
 
     expect_disconnect = true
     scripts           = ["${path.root}/scripts/base/reboot.sh"]
@@ -439,7 +441,7 @@ build {
       "IMAGE_FOLDER=${var.image_folder}"
     ]
 
-    execute_command = "echo \"$SUDO_PASS\" | sudo -S -p \"\" /bin/bash '{{ .Path }}'"
+    execute_command = "echo \"$SUDO_PASS\" | sudo -S env {{ .Vars }} {{ .Path }}"
     scripts         = ["${path.root}/scripts/installers/post-deployment.sh"]
   }
 
@@ -450,8 +452,7 @@ build {
     environment_vars = ["SUDO_PASS=${var.install_password}"]
 
     inline = [
-      "echo \"$SUDO_PASS\" | sudo -S -p \"\" /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+      "echo \"$SUDO_PASS\" | sudo -S env {{ .Vars }} /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
     ]
   }
-
 }
