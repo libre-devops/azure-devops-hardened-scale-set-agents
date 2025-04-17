@@ -251,7 +251,6 @@ build {
       "${path.root}/scripts/installers/basic.sh",
       "${path.root}/scripts/installers/containers.sh",
       "${path.root}/scripts/installers/git.sh",
-      "${path.root}/scripts/installers/vcpkg.sh",
       "${path.root}/scripts/installers/dpkg-config.sh",
       "${path.root}/scripts/installers/yq.sh",
     ]
