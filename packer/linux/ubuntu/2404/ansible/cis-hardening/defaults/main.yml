@@ -1228,7 +1228,7 @@ ubtu24cis_aide_db_file: /var/lib/aide/aide.db
 ## When Initializing aide this can take longer on some systems
 # changing the values enables user to change to thier own requirements
 # Maximum Time in seconds
-ubtu24cis_aide_init_async: 600
+ubtu24cis_aide_init_async: 1800
 # Polling Interval in seconds
 ubtu24cis_aide_init_poll: 15
 
