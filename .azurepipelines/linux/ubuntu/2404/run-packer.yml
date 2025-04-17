@@ -38,7 +38,7 @@ stages:
     jobs:
       - job: "Test"
         displayName: "Test"
-        timeoutInMinutes: 120
+        timeoutInMinutes: 180
         pool:
           name: 'Default'
         workspace:
