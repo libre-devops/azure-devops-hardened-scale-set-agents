@@ -334,14 +334,47 @@ build {
     ]
   }
 
+  ########################################################################
+  # FIRST REBOOT – needs sudo after CIS removed NOPASSWD
+  ########################################################################
   provisioner "shell" {
-    environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
-    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    environment_vars = [
+      "SUDO_PASS=${var.install_password}"
+    ]
+
+    # sudo will read the password from stdin (-S)
+    execute_command   = "echo \"$SUDO_PASS\" | sudo -S -p '' /bin/sh -c '{{ .Vars }} {{ .Path }}'"
+    expect_disconnect = true
+    scripts           = ["${path.root}/scripts/base/reboot.sh"]
+  }
+
+  ########################################################################
+  # POST‑DEPLOYMENT WORK – runs as root
+  ########################################################################
+  provisioner "shell" {
+    environment_vars = [
+      "SUDO_PASS=${var.install_password}",
+      "HELPER_SCRIPT_FOLDER=${var.helper_script_folder}",
+      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
+      "IMAGE_FOLDER=${var.image_folder}"
+    ]
+
+    execute_command  = "echo \"$SUDO_PASS\" | sudo -S -p '' bash -c '{{ .Vars }} {{ .Path }}'"
     scripts          = ["${path.root}/scripts/installers/post-deployment.sh"]
   }
 
+  ########################################################################
+  # FINAL SYSPREP / WAAGENT DEPROVISION
+  ########################################################################
   provisioner "shell" {
-    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
+    environment_vars = [
+      "SUDO_PASS=${var.install_password}"
+    ]
+
+    inline = [
+      # feed password once to run waagent as root
+      "echo \"$SUDO_PASS\" | sudo -S -p '' /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+    ]
   }
+
 }

@@ -1,3 +1,33 @@
+locals {
+  rg_name             = "rg-${var.short}-${var.loc}-${var.env}-02"
+  vnet_name           = "vnet-${var.short}-${var.loc}-${var.env}-02"
+  bastion_name        = "bst-${var.short}-${var.loc}-${var.env}-02"
+  bastion_subnet_name = "AzureBastionSubnet"
+  vm_subnet_name      = "VMSubnet"
+  subnets = {
+    (local.bastion_subnet_name) = {
+      mask_size = 26
+      netnum    = 0
+    }
+    (local.vm_subnet_name) = {
+      mask_size = 26
+      netnum    = 1
+    }
+  }
+  nsg_name            = "nsg-${var.short}-${var.loc}-${var.env}-02"
+  scale_set_name      = "vmss-${var.short}-${var.loc}-${var.env}-02"
+  admin_username      = "Local${title(var.short)}${title(var.env)}Admin"
+  deploy_windows_vmss = false
+}
+
+module "rg" {
+  source = "libre-devops/rg/azurerm"
+
+  rg_name  = local.rg_name
+  location = local.location
+  tags     = local.tags
+}
+
 module "shared_vars" {
   source = "libre-devops/shared-vars/azurerm"
 }
@@ -13,38 +43,78 @@ locals {
 module "subnet_calculator" {
   source = "libre-devops/subnet-calculator/null"
 
-  base_cidr    = local.lookup_cidr[var.short][var.env][0]
-  subnet_sizes = [26, 26]
+  base_cidr = local.lookup_cidr[var.short][var.env][0]
+  subnets   = local.subnets
 }
+
+module "network" {
+  source = "libre-devops/network/azurerm"
+
+  rg_name  = module.rg.rg_name
+  location = module.rg.rg_location
+  tags     = module.rg.rg_tags
+
+  vnet_name          = local.vnet_name
+  vnet_location      = module.rg.rg_location
+  vnet_address_space = [module.subnet_calculator.base_cidr]
+
+  subnets = {
+    for i, name in module.subnet_calculator.subnet_names :
+    name => {
+      address_prefixes = toset([module.subnet_calculator.subnet_ranges[i]])
+    }
+  }
+}
+
+module "nsg" {
+  source = "libre-devops/nsg/azurerm"
+
+  rg_name  = module.rg.rg_name
+  location = module.rg.rg_location
+  tags     = module.rg.rg_tags
+
+  nsg_name              = local.nsg_name
+  associate_with_subnet = true
+  subnet_id             = module.network.subnets_ids[local.vm_subnet_name]
+  custom_nsg_rules = {
+    "AllowVnetInbound" = {
+      priority                   = 100
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = "*"
+      source_address_prefix      = "VirtualNetwork"
+      destination_address_prefix = "VirtualNetwork"
+    }
+  }
+}
+
 
 module "bastion" {
   source = "libre-devops/bastion/azurerm"
 
-  rg_name  = data.azurerm_resource_group.rg.name
-  location = data.azurerm_resource_group.rg.location
-  tags     = data.azurerm_resource_group.rg.tags
+  rg_name  = module.rg.rg_name
+  location = module.rg.rg_location
+  tags     = module.rg.rg_tags
 
-  bastion_host_name                  = "bst-${var.short}-${var.loc}-${var.env}-01"
-  bastion_sku                        = "Basic"
+  bastion_host_name                  = local.bastion_name
+  bastion_sku                        = "Developer"
   virtual_network_id                 = data.azurerm_virtual_network.vnet.id
   create_bastion_nsg                 = true
   create_bastion_nsg_rules           = true
-  create_bastion_subnet              = true
-  bastion_subnet_target_vnet_name    = data.azurerm_virtual_network.vnet.name
-  bastion_subnet_target_vnet_rg_name = data.azurerm_virtual_network.vnet.resource_group_name
-  bastion_subnet_range               = module.subnet_calculator.subnet_ranges[1]
+  create_bastion_subnet              = false
+  bastion_subnet_target_vnet_name    = module.network.vnet_name
+  bastion_subnet_target_vnet_rg_name = module.rg.rg_name
 }
 
-locals {
-  name = "vmss${var.short}${var.loc}${var.env}01"
-}
 
 module "azdo_spn" {
   source = "github.com/libre-devops/terraform-azuredevops-federated-managed-identity-connection"
 
-  rg_id    = data.azurerm_resource_group.rg.id
-  location = data.azurerm_resource_group.rg.location
-  tags     = data.azurerm_resource_group.rg.tags
+  rg_id    = module.rg.rg_id
+  location = module.rg.rg_location
+  tags     = module.rg.rg_tags
 
   azuredevops_organization_guid  = data.azurerm_key_vault_secret.azdo_guid.value
   azuredevops_organization_name  = data.azurerm_key_vault_secret.azdo_org_name.value
@@ -52,21 +122,91 @@ module "azdo_spn" {
   role_definition_name_to_assign = "Contributor"
 }
 
+module "linux_vm_scale_set" {
+  source = "github.com/libre-devops/terraform-azurerm-linux-uniform-orchestration-vm-scale-set"
 
-module "windows_vm_scale_set" {
-  source = "libre-devops/windows-uniform-orchestration-vm-scale-sets/azurerm"
+  count = local.deploy_windows_vmss ? 0 : 1
 
-  rg_name  = data.azurerm_resource_group.rg.name
-  location = data.azurerm_resource_group.rg.location
-  tags     = data.azurerm_resource_group.rg.tags
+  rg_name  = module.rg.rg_name
+  location = module.rg.rg_location
+  tags     = module.rg.rg_tags
 
   scale_sets = [
     {
 
-      name = local.name
+      name = local.scale_set_name
 
       computer_name_prefix            = "vmss1"
-      admin_username                  = "Local${title(var.short)}${title(var.env)}Admin"
+      admin_username                  = local.admin_username
+      instances                       = 1
+      sku                             = "Standard_D4ds_v5"
+      use_simple_image                = false
+      use_custom_image                = true
+      source_image_id                 = data.azurerm_shared_image.azdo_ubuntu_image.id
+      disable_password_authentication = true
+      overprovision                   = false    # Azure DevOps will set overprovision to false
+      upgrade_mode                    = "Manual" # Azure DevOps will set to Manual anyway
+      single_placement_group          = false    # Must be disabled for Azure DevOps or will fail
+      enable_automatic_updates        = true
+      create_asg                      = true
+
+      admin_ssh_key = [
+        {
+          username   = local.admin_username
+          public_key = data.azurerm_ssh_public_key.mgmt_ssh_key.public_key
+        }
+      ]
+
+      identity_type = "SystemAssigned, UserAssigned"
+      identity_ids  = [module.azdo_spn.user_assigned_managed_identity_id]
+
+      network_interface = [
+        {
+          name                          = "nic-${local.scale_set_name}"
+          primary                       = true
+          enable_accelerated_networking = false
+          ip_configuration = [
+            {
+              name                           = "ipconfig-${local.scale_set_name}"
+              primary                        = true
+              subnet_id                      = module.network.subnets_ids[local.vm_subnet_name]
+              application_security_group_ids = []
+            }
+          ]
+        }
+      ]
+      os_disk = {
+        caching              = "ReadOnly"
+        storage_account_type = "Premium_LRS"
+        disk_size_gb         = 256
+      }
+
+      boot_diagnostics = {
+        storage_account_uri = null
+      }
+
+      extension = []
+    }
+  ]
+}
+
+
+module "windows_vm_scale_set" {
+  source = "libre-devops/windows-uniform-orchestration-vm-scale-sets/azurerm"
+
+  count = local.deploy_windows_vmss ? 1 : 0
+
+  rg_name  = module.rg.rg_name
+  location = module.rg.rg_location
+  tags     = module.rg.rg_tags
+
+  scale_sets = [
+    {
+
+      name = local.scale_set_name
+
+      computer_name_prefix            = "vmss1"
+      admin_username                  = local.admin_username
       admin_password                  = data.azurerm_key_vault_secret.admin_pwd.value
       instances                       = 1
       sku                             = "Standard_D4ds_v5"
@@ -84,14 +224,14 @@ module "windows_vm_scale_set" {
       identity_ids  = [module.azdo_spn.user_assigned_managed_identity_id]
       network_interface = [
         {
-          name                          = "nic-${local.name}"
+          name                          = "nic-${local.scale_set_name}"
           primary                       = true
           enable_accelerated_networking = false
           ip_configuration = [
             {
-              name                           = "ipconfig-${local.name}"
+              name                           = "ipconfig-${local.scale_set_name}"
               primary                        = true
-              subnet_id                      = data.azurerm_subnet.subnet1.id
+              subnet_id                      = module.network.subnets_ids[local.vm_subnet_name]
               application_security_group_ids = []
             }
           ]
@@ -118,12 +258,12 @@ data "azuredevops_project" "project" {
 }
 
 resource "azuredevops_elastic_pool" "azure_pool" {
-  name                   = module.windows_vm_scale_set.ss_name[local.name]
+  name                   = local.deploy_windows_vmss == true ? module.windows_vm_scale_set.ss_name[local.scale_set_name] : module.linux_vm_scale_set.ss_name[local.scale_set_name]
   service_endpoint_id    = module.azdo_spn.service_endpoint_id
   service_endpoint_scope = data.azuredevops_project.project.id
   desired_idle           = 1
   max_capacity           = 2
-  azure_resource_id      = module.windows_vm_scale_set.ss_id[local.name]
+  azure_resource_id      = local.deploy_windows_vmss == true ? module.windows_vm_scale_set.ss_name[local.scale_set_name] : module.linux_vm_scale_set.ss_name[local.scale_set_name]
   recycle_after_each_use = false
   time_to_live_minutes   = 30
   agent_interactive_ui   = false
