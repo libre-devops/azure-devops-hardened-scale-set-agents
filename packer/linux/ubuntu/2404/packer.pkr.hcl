@@ -432,7 +432,6 @@ build {
       "IMAGE_FOLDER=${var.image_folder}"
     ]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
-    use_sudo        = true
     inline_shebang  = "/bin/sh -x"
     inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
   }
