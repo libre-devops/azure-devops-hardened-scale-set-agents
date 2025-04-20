@@ -433,6 +433,6 @@ build {
     ]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
     inline_shebang  = "/bin/sh -x"
-    inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
+    inline          = ["sleep 30", "sudo /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
   }
 }
