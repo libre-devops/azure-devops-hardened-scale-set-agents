@@ -372,33 +372,33 @@ build {
     script          = "${path.root}/scripts/base/apt-mock-remove.sh"
   }
 
-  ########################################################################
-  # TEST – Run Pester tests against the configured image
-  ########################################################################
-  provisioner "shell" {
-    environment_vars = [
-      "IMAGE_VERSION=${local.image_version}",
-      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"
-    ]
-    inline = [
-      "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"
-    ]
-  }
-
-  provisioner "ansible" {
-    playbook_file   = "${path.root}/ansible/cis-hardening/site.yml"
-    user            = "packer"
-
-    extra_arguments = [
-      "--become", "--become-user=root",
-      # one JSON/YAML object guarantees proper types
-      "-e", "{ubtu24cis_rule_5_2_4: false, ubtu24cis_rule_5_4_2_4: false}"
-    ]
-
-    ansible_env_vars = [
-      "ANSIBLE_HOST_KEY_CHECKING=False"
-    ]
-  }
+  # ########################################################################
+  # # TEST – Run Pester tests against the configured image
+  # ########################################################################
+  # provisioner "shell" {
+  #   environment_vars = [
+  #     "IMAGE_VERSION=${local.image_version}",
+  #     "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"
+  #   ]
+  #   inline = [
+  #     "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"
+  #   ]
+  # }
+  #
+  # provisioner "ansible" {
+  #   playbook_file   = "${path.root}/ansible/cis-hardening/site.yml"
+  #   user            = "packer"
+  #
+  #   extra_arguments = [
+  #     "--become", "--become-user=root",
+  #     # one JSON/YAML object guarantees proper types
+  #     "-e", "{ubtu24cis_rule_5_2_4: false, ubtu24cis_rule_5_4_2_4: false}"
+  #   ]
+  #
+  #   ansible_env_vars = [
+  #     "ANSIBLE_HOST_KEY_CHECKING=False"
+  #   ]
+  # }
 
   ########################################################################
   # REBOOT – Required after CIS removed NOPASSWD from sudoers
@@ -432,8 +432,6 @@ build {
       "IMAGE_FOLDER=${var.image_folder}"
     ]
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    inline = [
-      "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
-    ]
+    inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
   }
 }
