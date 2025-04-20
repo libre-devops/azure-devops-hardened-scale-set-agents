@@ -20,7 +20,7 @@ chmod 755 $IMAGE_FOLDER
 ENVPATH=$(grep 'PATH=' /etc/environment | head -n 1 | sed -z 's/^PATH=*//')
 ENVPATH=${ENVPATH#"\""}
 ENVPATH=${ENVPATH%"\""}
-replace_etc_environment_variable "PATH" "${ENVPATH}"
+replaceEtcEnvironmentVariable "PATH" "${ENVPATH}"
 echo "Updated /etc/environment: $(cat /etc/environment)"
 
 if isUbuntu24; then
