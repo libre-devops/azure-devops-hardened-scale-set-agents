@@ -422,19 +422,6 @@ build {
     scripts         = ["${path.root}/scripts/installers/post-deployment.sh"]
   }
 
-
-
-  provisioner "shell" {
-    environment_vars = [
-      "HELPER_SCRIPT_FOLDER=${var.helper_script_folder}",
-      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
-      "IMAGE_FOLDER=${var.image_folder}"
-    ]
-    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts         = ["${path.root}/scripts/installers/prepare-linux-agent.sh"]
-  }
-
-
   ########################################################################
   # SYSPREP – Deprovision VM for Azure SIG publishing
   ########################################################################
@@ -445,6 +432,7 @@ build {
       "IMAGE_FOLDER=${var.image_folder}"
     ]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+    use_sudo        = true
     inline_shebang  = "/bin/sh -x"
     inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
   }
