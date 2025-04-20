@@ -95,7 +95,6 @@ sudo apt-get update
 sudo apt-get dist-upgrade -y
 sudo apt-get install --yes --reinstall walinuxagent
 sudo apt-get update
-sudo apt-get dist-upgrade -y
 sudo systemctl restart walinuxagent
 waagent --version
 
