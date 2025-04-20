@@ -1,39 +1,45 @@
 #!/usr/bin/env bash
 ###############################################################################
 # fix-walinuxagent.sh
-# Upgrade Azure Linux Agent on Ubuntu 24.04 to the first SRU build that
-# survives self‑update (2.11.1.4‑0ubuntu1~24.04.1), pin it, and disable
-# further auto‑updates so waagent -deprovision works reliably.
+#   Patch Azure Linux Agent on Ubuntu 24.04 so `waagent -deprovision`
+#   no longer crashes with ModuleNotFoundError.
 ###############################################################################
 set -Eeuo pipefail
 IFS=$'\n\t'
+export DEBIAN_FRONTEND=noninteractive
 
-echo ">> Adding noble‑proposed repo (if absent)…"
-if ! grep -Rq "noble-proposed" /etc/apt/sources.list*; then
-  echo "deb http://azure.archive.ubuntu.com/ubuntu noble-proposed main universe restricted multiverse" \
-    | tee /etc/apt/sources.list.d/noble-proposed.list
-fi
+echo ">> Adding noble‑proposed from the primary archive …"
+cat >/etc/apt/sources.list.d/noble-proposed.list <<'EOF'
+deb http://archive.ubuntu.com/ubuntu noble-proposed main restricted universe multiverse
+EOF
 
-echo ">> Pinning walinuxagent to proposed only…"
+echo ">> Pinning walinuxagent to come from proposed only …"
 cat >/etc/apt/preferences.d/99-walinuxagent-proposed <<'EOF'
 Package: walinuxagent
 Pin: release a=noble-proposed
 Pin-Priority: 1001
 EOF
 
-echo ">> Installing fixed walinuxagent build…"
+echo ">> Updating apt lists …"
 apt-get update -y
-apt-get install -y walinuxagent=2.11.1.4-0ubuntu1~24.04.1
 
-echo ">> Holding package so later dist‑upgrades can’t undo the fix…"
+TARGET_VER="2.11.1.4-0ubuntu1~24.04.1"
+
+echo ">> Installing walinuxagent ${TARGET_VER} (or newest in proposed) …"
+if ! apt-get install -y "walinuxagent=${TARGET_VER}"; then
+  echo "   Desired build not found, falling back to latest in proposed …"
+  apt-get -t noble-proposed install -y walinuxagent
+fi
+
+echo ">> Holding the package to prevent accidental downgrade …"
 apt-mark hold walinuxagent
 
-echo ">> Disabling the agent’s self‑update feature…"
+echo ">> Disabling the agent’s self‑update feature …"
 sed -i 's/^#\?\s*AutoUpdate.Enabled=.*/AutoUpdate.Enabled=n/' /etc/waagent.conf
 
-echo ">> Restarting agent and verifying version…"
+echo ">> Restarting agent and verifying …"
 systemctl restart walinuxagent
 sleep 5
-waagent --version || { echo "ERROR: waagent not healthy"; exit 1; }
+waagent --version || { echo 'ERROR: waagent not healthy!'; exit 1; }
 
 echo ">> walinuxagent patched and pinned successfully."

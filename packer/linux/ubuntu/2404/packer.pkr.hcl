@@ -418,8 +418,8 @@ build {
       "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
       "IMAGE_FOLDER=${var.image_folder}"
     ]
-    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts          = ["${path.root}/scripts/installers/post-deployment.sh"]
+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    scripts         = ["${path.root}/scripts/installers/post-deployment.sh"]
   }
 
 
@@ -431,7 +431,7 @@ build {
       "IMAGE_FOLDER=${var.image_folder}"
     ]
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts          = ["${path.root}/scripts/installers/prepare-linux-agent.sh"]
+    scripts         = ["${path.root}/scripts/installers/prepare-linux-agent.sh"]
   }
 
 
