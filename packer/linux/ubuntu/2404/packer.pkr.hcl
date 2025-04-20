@@ -375,30 +375,30 @@ build {
   # ########################################################################
   # # TEST – Run Pester tests against the configured image
   # ########################################################################
-  # provisioner "shell" {
-  #   environment_vars = [
-  #     "IMAGE_VERSION=${local.image_version}",
-  #     "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"
-  #   ]
-  #   inline = [
-  #     "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"
-  #   ]
-  # }
-  #
-  # provisioner "ansible" {
-  #   playbook_file   = "${path.root}/ansible/cis-hardening/site.yml"
-  #   user            = "packer"
-  #
-  #   extra_arguments = [
-  #     "--become", "--become-user=root",
-  #     # one JSON/YAML object guarantees proper types
-  #     "-e", "{ubtu24cis_rule_5_2_4: false, ubtu24cis_rule_5_4_2_4: false}"
-  #   ]
-  #
-  #   ansible_env_vars = [
-  #     "ANSIBLE_HOST_KEY_CHECKING=False"
-  #   ]
-  # }
+  provisioner "shell" {
+    environment_vars = [
+      "IMAGE_VERSION=${local.image_version}",
+      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"
+    ]
+    inline = [
+      "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"
+    ]
+  }
+
+  provisioner "ansible" {
+    playbook_file   = "${path.root}/ansible/cis-hardening/site.yml"
+    user            = "packer"
+
+    extra_arguments = [
+      "--become", "--become-user=root",
+      # one JSON/YAML object guarantees proper types
+      "-e", "{ubtu24cis_rule_5_2_4: false, ubtu24cis_rule_5_4_2_4: false}"
+    ]
+
+    ansible_env_vars = [
+      "ANSIBLE_HOST_KEY_CHECKING=False"
+    ]
+  }
 
   ########################################################################
   # REBOOT – Required after CIS removed NOPASSWD from sudoers
