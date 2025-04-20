@@ -221,7 +221,7 @@ build {
     destination = "${var.installer_script_folder}"
     source      = "${path.root}/scripts/installers"
   }
-f
+
   ########################################################################
   # COPY – Post generation scripts
   ########################################################################
@@ -445,7 +445,7 @@ f
       "IMAGE_FOLDER=${var.image_folder}"
     ]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
-    inline_shebang = "/bin/sh -x"
+    inline_shebang  = "/bin/sh -x"
     inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
   }
 }
