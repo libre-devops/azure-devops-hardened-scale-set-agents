@@ -21,3 +21,10 @@ variable "short" {
   type        = string
   default     = "libd"
 }
+
+variable "deploy_bastion" {
+  type        = bool
+  description = "Deploy Bastion or not"
+  default     = false
+  nullable    = false
+}

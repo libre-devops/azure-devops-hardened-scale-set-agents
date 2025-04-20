@@ -1,16 +1,15 @@
 locals {
-  rg_name                 = "rg-${var.short}-${var.loc}-${var.env}-01"
-  vnet_name               = "vnet-${var.short}-${var.loc}-${var.env}-01"
-  vm_subnet_name          = "VMsubnet"
-  bastion_name            = "bst-${var.short}-${var.loc}-${var.env}-01"
-  bastion_subnet_name     = "AzureBastionSubnet"
-  nsg_name                = "nsg-${var.short}-${var.loc}-${var.env}-01"
-  uid_name                = "uid-${var.short}-${var.loc}-${var.env}-01"
-  key_vault_name          = "kv-${var.short}-${var.loc}-${var.env}-01"
-  gallery_name            = "gal${var.short}${var.loc}${var.env}01"
-  windows_image_name      = "AzDoWindows2025"
-  ubuntu_image_name       = "AzdoUbuntu2404"
-  deploy_bastion          = false
+  rg_name             = "rg-${var.short}-${var.loc}-${var.env}-01"
+  vnet_name           = "vnet-${var.short}-${var.loc}-${var.env}-01"
+  vm_subnet_name      = "VMsubnet"
+  bastion_name        = "bst-${var.short}-${var.loc}-${var.env}-01"
+  bastion_subnet_name = "AzureBastionSubnet"
+  nsg_name            = "nsg-${var.short}-${var.loc}-${var.env}-01"
+  uid_name            = "uid-${var.short}-${var.loc}-${var.env}-01"
+  key_vault_name      = "kv-${var.short}-${var.loc}-${var.env}-01"
+  gallery_name        = "gal${var.short}${var.loc}${var.env}01"
+  windows_image_name  = "AzDoWindows2025"
+  ubuntu_image_name   = "AzdoUbuntu2404"
 }
 
 module "rg" {
@@ -75,7 +74,7 @@ module "network" {
 module "bastion" {
   source = "libre-devops/bastion/azurerm"
 
-  count = local.deploy_bastion == true ? 1 : 0
+  count = var.deploy_bastion == true ? 1 : 0
 
   rg_name  = module.rg.rg_name
   location = module.rg.rg_location
@@ -132,8 +131,8 @@ data "http" "user_ip" {
 
 resource "azurerm_user_assigned_identity" "uid" {
   resource_group_name = module.rg.rg_name
-  location = module.rg.rg_location
-  tags     = module.rg.rg_tags
+  location            = module.rg.rg_location
+  tags                = module.rg.rg_tags
 
   name = local.uid_name
 }
@@ -163,10 +162,10 @@ module "key_vault" {
 
   key_vaults = [
     {
-      name     = local.key_vault_name
-      rg_name  = module.rg.rg_name
-      location = module.rg.rg_location
-      tags     = module.rg.rg_tags
+      name                            = local.key_vault_name
+      rg_name                         = module.rg.rg_name
+      location                        = module.rg.rg_location
+      tags                            = module.rg.rg_tags
       enabled_for_deployment          = true
       enabled_for_disk_encryption     = true
       enabled_for_template_deployment = true

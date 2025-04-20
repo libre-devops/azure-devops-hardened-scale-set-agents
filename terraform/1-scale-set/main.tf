@@ -142,7 +142,7 @@ module "linux_vm_scale_set" {
       sku                             = "Standard_D4ds_v5"
       use_simple_image                = false
       use_custom_image                = true
-      custom_source_image_id                 = data.azurerm_shared_image.azdo_ubuntu_image.id
+      custom_source_image_id          = data.azurerm_shared_image.azdo_ubuntu_image.id
       disable_password_authentication = true
       overprovision                   = false    # Azure DevOps will set overprovision to false
       upgrade_mode                    = "Manual" # Azure DevOps will set to Manual anyway
