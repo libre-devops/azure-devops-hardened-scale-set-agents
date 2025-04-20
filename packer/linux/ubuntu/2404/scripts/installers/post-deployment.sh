@@ -16,6 +16,7 @@ chmod -R 777 /usr/share
 
 chmod 755 $IMAGE_FOLDER
 
+setEtcEnvironmentVariable TENV_AUTO_INSTALL true
 # Remove quotes around PATH
 ENVPATH=$(grep 'PATH=' /etc/environment | head -n 1 | sed -z 's/^PATH=*//')
 ENVPATH=${ENVPATH#"\""}

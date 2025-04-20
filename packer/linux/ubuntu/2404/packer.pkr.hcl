@@ -409,6 +409,16 @@ build {
     inline            = ["echo 'Reboot VM'", "sudo reboot"]
   }
 
+  provisioner "shell" {
+    environment_vars = [
+      "HELPER_SCRIPT_FOLDER=${var.helper_script_folder}",
+      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
+      "IMAGE_FOLDER=${var.image_folder}"
+    ]
+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    scripts         = ["${path.root}/scripts/installers/configure-ufw.sh"]
+  }
+
   ########################################################################
   # POST‑DEPLOYMENT – Final configuration under strict sudo rules
   ########################################################################

@@ -98,14 +98,13 @@ module "bastion" {
   location = module.rg.rg_location
   tags     = module.rg.rg_tags
 
-  bastion_host_name                  = local.bastion_name
-  bastion_sku                        = "Developer"
-  virtual_network_id                 = data.azurerm_virtual_network.vnet.id
-  create_bastion_nsg                 = true
-  create_bastion_nsg_rules           = true
-  create_bastion_subnet              = false
-  bastion_subnet_target_vnet_name    = module.network.vnet_name
-  bastion_subnet_target_vnet_rg_name = module.rg.rg_name
+  bastion_host_name        = local.bastion_name
+  bastion_sku              = "Basic"
+  virtual_network_id       = module.network.vnet_id
+  create_bastion_nsg       = true
+  create_bastion_nsg_rules = true
+  create_bastion_subnet    = false
+  external_subnet_id       = module.network.subnets_ids[local.bastion_subnet_name]
 }
 
 
@@ -189,7 +188,6 @@ module "linux_vm_scale_set" {
     }
   ]
 }
-
 
 module "windows_vm_scale_set" {
   source = "libre-devops/windows-uniform-orchestration-vm-scale-sets/azurerm"
