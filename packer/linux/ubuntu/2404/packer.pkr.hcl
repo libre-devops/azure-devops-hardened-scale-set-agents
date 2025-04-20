@@ -432,9 +432,8 @@ build {
     ]
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts          = ["${path.root}/scripts/installers/prepare-linux-agent.sh"]
-
   }
-}
+
 
   ########################################################################
   # SYSPREP – Deprovision VM for Azure SIG publishing
