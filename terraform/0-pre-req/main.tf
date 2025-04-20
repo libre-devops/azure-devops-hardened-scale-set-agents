@@ -2,12 +2,15 @@ locals {
   rg_name                 = "rg-${var.short}-${var.loc}-${var.env}-01"
   vnet_name               = "vnet-${var.short}-${var.loc}-${var.env}-01"
   vm_subnet_name          = "VMsubnet"
+  bastion_name            = "bst-${var.short}-${var.loc}-${var.env}-01"
+  bastion_subnet_name     = "AzureBastionSubnet"
   nsg_name                = "nsg-${var.short}-${var.loc}-${var.env}-01"
   uid_name                = "uid-${var.short}-${var.loc}-${var.env}-01"
   key_vault_name          = "kv-${var.short}-${var.loc}-${var.env}-01"
   gallery_name            = "gal${var.short}${var.loc}${var.env}01"
   windows_image_name      = "AzDoWindows2025"
   ubuntu_image_name       = "AzdoUbuntu2404"
+  deploy_bastion          = false
 }
 
 module "rg" {
@@ -39,6 +42,10 @@ module "subnet_calculator" {
       mask_size = 26
       netnum    = 0
     }
+    (local.bastion_subnet_name) = {
+      mask_size = 26
+      netnum    = 1
+    }
   }
 }
 
@@ -57,13 +64,32 @@ module "network" {
     for i, name in module.subnet_calculator.subnet_names :
     name => {
       address_prefixes  = toset([module.subnet_calculator.subnet_ranges[i]])
-      service_endpoints = name == local.vm_subnet_name ? ["Microsoft.Keyvault"] : []
+      service_endpoints = name == local.vm_subnet_name ? ["Microsoft.KeyVault"] : []
 
       # Only assign delegation to subnet3
       delegation = []
     }
   }
 }
+
+module "bastion" {
+  source = "libre-devops/bastion/azurerm"
+
+  count = local.deploy_bastion == true ? 1 : 0
+
+  rg_name  = module.rg.rg_name
+  location = module.rg.rg_location
+  tags     = module.rg.rg_tags
+
+  bastion_host_name        = local.bastion_name
+  bastion_sku              = "Basic"
+  virtual_network_id       = module.network.vnet_id
+  create_bastion_nsg       = true
+  create_bastion_nsg_rules = true
+  create_bastion_subnet    = false
+  external_subnet_id       = module.network.subnets_ids[local.bastion_subnet_name]
+}
+
 
 
 module "nsg" {

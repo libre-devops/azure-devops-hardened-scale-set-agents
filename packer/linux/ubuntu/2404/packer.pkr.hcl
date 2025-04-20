@@ -130,7 +130,7 @@ source "azure-arm" "build" {
   tenant_id                 = var.arm_tenant_id
   build_resource_group_name = local.rg_name
   build_key_vault_name      = local.key_vault_name
-  user_data_file            = "${path.root}/scripts/base/configure-legacy-ssh.sh" # work‑around packer #11656
+  # user_data_file            = "${path.root}/scripts/base/configure-legacy-ssh.sh" # work‑around packer #11656
 
   os_type                 = "Linux"
   image_publisher         = "Canonical"
@@ -221,7 +221,7 @@ build {
     destination = "${var.installer_script_folder}"
     source      = "${path.root}/scripts/installers"
   }
-
+f
   ########################################################################
   # COPY – Post generation scripts
   ########################################################################
@@ -349,9 +349,9 @@ build {
   # REBOOT – Clean VM state before continuing heavy installs
   ########################################################################
   provisioner "shell" {
-    execute_command   = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command   = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     expect_disconnect = true
-    scripts           = ["${path.root}/scripts/base/reboot.sh"]
+    inline            = ["echo 'Reboot VM'", "sudo reboot"]
   }
 
   ########################################################################
@@ -404,9 +404,9 @@ build {
   # REBOOT – Required after CIS removed NOPASSWD from sudoers
   ########################################################################
   provisioner "shell" {
-    execute_command   = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command   = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     expect_disconnect = true
-    scripts           = ["${path.root}/scripts/base/reboot.sh"]
+    inline            = ["echo 'Reboot VM'", "sudo reboot"]
   }
 
   ########################################################################
@@ -444,7 +444,8 @@ build {
       "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
       "IMAGE_FOLDER=${var.image_folder}"
     ]
-    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+    inline_shebang = "/bin/sh -x"
     inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
   }
 }
