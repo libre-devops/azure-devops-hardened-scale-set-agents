@@ -147,6 +147,7 @@ module "linux_vm_scale_set" {
       single_placement_group          = false    # Must be disabled for Azure DevOps or will fail
       enable_automatic_updates        = true
       create_asg                      = true
+      encryption_at_host_enabled      = true
 
       admin_ssh_key = [
         {
@@ -274,7 +275,7 @@ module "role_assignments" {
 
   role_assignments = [
     {
-      principal_ids = var.deploy_windows_vmss == true ? [module.windows_vm_scale_set.ss_identity[local.scale_set_name][0].principal_id] : [module.linux_vm_scale_set[0].ss_identity[local.scale_set_name][0].principal_id]
+      principal_ids = var.deploy_windows_vmss == true ? [module.windows_vm_scale_set[0].ss_identity[local.scale_set_name][0].principal_id] : [module.linux_vm_scale_set[0].ss_identity[local.scale_set_name][0].principal_id]
       role_names    = ["Key Vault Administrator", "Contributor"]
       scope         = format("/subscriptions/%s", data.azurerm_client_config.current.subscription_id)
     },
