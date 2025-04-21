@@ -14,10 +14,9 @@ locals {
       netnum    = 1
     }
   }
-  nsg_name            = "nsg-${var.short}-${var.loc}-${var.env}-02"
-  scale_set_name      = "vmss-${var.short}-${var.loc}-${var.env}-02"
-  admin_username      = "Local${title(var.short)}${title(var.env)}Admin"
-  deploy_windows_vmss = false
+  nsg_name       = "nsg-${var.short}-${var.loc}-${var.env}-02"
+  scale_set_name = "vmss-${var.short}-${var.loc}-${var.env}-02"
+  admin_username = "Local${title(var.short)}${title(var.env)}Admin"
 }
 
 module "rg" {
@@ -124,7 +123,7 @@ module "azdo_spn" {
 module "linux_vm_scale_set" {
   source = "github.com/libre-devops/terraform-azurerm-linux-uniform-orchestration-vm-scale-set"
 
-  count = local.deploy_windows_vmss ? 0 : 1
+  count = var.deploy_windows_vmss ? 0 : 1
 
   rg_name  = module.rg.rg_name
   location = module.rg.rg_location
@@ -192,7 +191,7 @@ module "linux_vm_scale_set" {
 module "windows_vm_scale_set" {
   source = "libre-devops/windows-uniform-orchestration-vm-scale-sets/azurerm"
 
-  count = local.deploy_windows_vmss ? 1 : 0
+  count = var.deploy_windows_vmss ? 1 : 0
 
   rg_name  = module.rg.rg_name
   location = module.rg.rg_location
@@ -256,12 +255,12 @@ data "azuredevops_project" "project" {
 }
 
 resource "azuredevops_elastic_pool" "azure_pool" {
-  name                   = local.deploy_windows_vmss == true ? module.windows_vm_scale_set[0].ss_name[local.scale_set_name] : module.linux_vm_scale_set[0].ss_name[local.scale_set_name]
+  name                   = var.deploy_windows_vmss == true ? module.windows_vm_scale_set[0].ss_name[local.scale_set_name] : module.linux_vm_scale_set[0].ss_name[local.scale_set_name]
   service_endpoint_id    = module.azdo_spn.service_endpoint_id
   service_endpoint_scope = data.azuredevops_project.project.id
   desired_idle           = 1
   max_capacity           = 2
-  azure_resource_id      = local.deploy_windows_vmss == true ? module.windows_vm_scale_set[0].ss_id[local.scale_set_name] : module.linux_vm_scale_set[0].ss_id[local.scale_set_name]
+  azure_resource_id      = var.deploy_windows_vmss == true ? module.windows_vm_scale_set[0].ss_id[local.scale_set_name] : module.linux_vm_scale_set[0].ss_id[local.scale_set_name]
   recycle_after_each_use = false
   time_to_live_minutes   = 30
   agent_interactive_ui   = false
@@ -270,4 +269,14 @@ resource "azuredevops_elastic_pool" "azure_pool" {
   project_id             = data.azuredevops_project.project.id
 }
 
+module "role_assignments" {
+  source = "github.com/libre-devops/terraform-azurerm-role-assignment"
 
+  role_assignments = [
+    {
+      principal_ids = var.deploy_windows_vmss == true ? [module.windows_vm_scale_set.ss_identity[local.scale_set_name][0].principal_id] : [module.linux_vm_scale_set[0].ss_identity[local.scale_set_name][0].principal_id]
+      role_names    = ["Key Vault Administrator", "Contributor"]
+      scope         = format("/subscriptions/%s", data.azurerm_client_config.current.subscription_id)
+    },
+  ]
+}

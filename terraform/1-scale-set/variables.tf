@@ -21,3 +21,10 @@ variable "short" {
   type        = string
   default     = "libd"
 }
+
+variable "deploy_windows_vmss" {
+  type        = bool
+  description = "Whether to deploy Windows VMSS"
+  default     = false
+  nullable    = false
+}
