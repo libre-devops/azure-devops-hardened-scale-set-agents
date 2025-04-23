@@ -53,7 +53,7 @@ variable "deploy_gui" {
 locals {
   deploy_gui            = var.deploy_gui
   image_version         = formatdate("YYYYMM.DD.hhmmss", timestamp())
-  image_os              = "windowsserver2025"
+  image_os              = "windows11"
   short                 = "libd"
   env                   = "dev"
   loc                   = "uks"
@@ -113,7 +113,7 @@ source "azure-arm" "build" {
   os_type                   = "Windows"
   image_publisher           = "MicrosoftWindowsDesktop"
   image_offer               = "Windows-11"
-  image_sku                 = local.deploy_gui == true ? "win11-21h2-ent-g2" : "win11-21h2-ent-g2"
+  image_sku                 = local.deploy_gui == true ? "win11-23h2-ent" : "win11-23h2-ent"
   vm_size                   = "Standard_D4ds_v5"
   communicator              = "winrm"
   winrm_insecure            = "true"
@@ -172,6 +172,11 @@ build {
     source      = "${path.root}/toolsets/toolset.json"
   }
 
+  provisioner "file" {
+    source      = "scripts/HardeningKitty"
+    destination = "C:\\"
+  }
+
   provisioner "windows-shell" {
     inline = [
       "net user ${var.install_user} ${var.install_password} /add /passwordchg:no /passwordreq:yes /active:yes /Y",
@@ -185,24 +190,22 @@ build {
     inline = ["if (-not ((net localgroup Administrators) -contains '${var.install_user}')) { exit 1 }"]
   }
 
-  provisioner "powershell" {
-    elevated_password = "${var.install_password}"
-    elevated_user     = "${var.install_user}"
-    inline            = ["bcdedit.exe /set TESTSIGNING ON"]
-  }
 
   provisioner "powershell" {
     environment_vars = [
       "IMAGE_VERSION=${local.image_version}",
       "IMAGE_OS=${local.image_os}",
       "AGENT_TOOLSDIRECTORY=${var.agent_tools_directory}",
-      "IMAGEDATA_FILE=${var.imagedata_file}"
+      "IMAGEDATA_FILE=${var.imagedata_file}",
+      "IMAGE_FOLDER=${var.image_folder}",
+
     ]
     execution_policy = "unrestricted"
     scripts = [
       "${path.root}/scripts/Installers/Configure-Antivirus.ps1",
       "${path.root}/scripts/Installers/Install-PowerShellModules.ps1",
       "${path.root}/scripts/Installers/Install-Choco.ps1",
+      "${path.root}/scripts/Installers/Install-HardeningKitty.ps1",
       "${path.root}/scripts/Installers/Initialize-VM.ps1",
       "${path.root}/scripts/Installers/Update-ImageData.ps1",
     ]
@@ -251,9 +254,39 @@ build {
   }
 
   provisioner "powershell" {
-    inline = ["if (-not (Test-Path ${var.image_folder}\\Tests\\testResults.xml)) { throw '${var.image_folder}\\Tests\\testResults.xml not found' }"]
+    inline = [
+      "Write-Output 'Checking if the CSV file exists at the expected path...'",
+      "if (Test-Path 'C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv') {",
+      "  Write-Output 'CSV file found: C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv'",
+      "} else {",
+      "  Write-Error 'CSV file not found: C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv'",
+      "  exit 1",
+      "}"
+    ]
   }
 
+  provisioner "powershell" {
+    environment_vars = [
+      "HARDENING_KITTY_PATH=C:\\HardeningKitty",
+      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_11_enterprise_23h2_machine.csv;finding_list_cis_microsoft_windows_11_enterprise_23h2_user.csv;finding_list_microsoft_windows_tls.csv;finding_list_msft_security_baseline_edge_128_machine.csv;finding_list_msft_security_baseline_windows_11_23h2_machine.csv;finding_list_msft_security_baseline_windows_11_23h2_user.csv",
+      "IMAGE_OS=${local.image_os}",
+      "BUILD_WITH_GUI=${local.deploy_gui}"
+    ]
+    execution_policy = "unrestricted"
+    inline = [
+      "Write-Output 'Starting HardeningKitty...'",
+
+      # Navigate to the HardeningKitty path
+      "cd $env:HARDENING_KITTY_PATH",
+
+      # Split the HARDENING_KITTY_FILES_TO_RUN by ';' and loop through each file
+      "$files = $env:HARDENING_KITTY_FILES_TO_RUN -split ';'",
+      "foreach ($file in $files) {",
+      "Write-Output \"Running HardeningKitty for $file...\"",
+      "Invoke-HardeningKitty -Mode HailMary -Log -SkipRestorePoint -Report -FileFindingList \"$env:HARDENING_KITTY_PATH\\lists\\$file\"",
+      "}"
+    ]
+  }
 
   provisioner "powershell" {
     environment_vars = ["INSTALL_USER=${var.install_user}"]
@@ -266,6 +299,29 @@ build {
 
   provisioner "windows-restart" {
     restart_timeout = "10m"
+  }
+
+  provisioner "powershell" {
+    environment_vars = [
+      "HARDENING_KITTY_PATH=C:\\HardeningKitty",
+      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_11_enterprise_23h2_machine.csv;finding_list_cis_microsoft_windows_11_enterprise_23h2_user.csv;finding_list_microsoft_windows_tls.csv;finding_list_msft_security_baseline_edge_128_machine.csv;finding_list_msft_security_baseline_windows_11_23h2_machine.csv;finding_list_msft_security_baseline_windows_11_23h2_user.csv",
+      "IMAGE_OS=${local.image_os}",
+      "BUILD_WITH_GUI=${local.deploy_gui}"
+    ]
+    execution_policy = "unrestricted"
+    inline = [
+      "Write-Output 'Starting HardeningKitty...'",
+
+      # Navigate to the HardeningKitty path
+      "cd $env:HARDENING_KITTY_PATH",
+
+      # Split the HARDENING_KITTY_FILES_TO_RUN by ';' and loop through each file
+      "$files = $env:HARDENING_KITTY_FILES_TO_RUN -split ';'",
+      "foreach ($file in $files) {",
+      "Write-Output \"Running HardeningKitty for $file...\"",
+      "Invoke-HardeningKitty -Mode HailMary -Log -SkipRestorePoint -Report -FileFindingList \"$env:HARDENING_KITTY_PATH\\lists\\$file\"",
+      "}"
+    ]
   }
 
   provisioner "powershell" {

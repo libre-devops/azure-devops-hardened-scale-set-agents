@@ -1,15 +1,16 @@
 locals {
-  rg_name             = "rg-${var.short}-${var.loc}-${var.env}-01"
-  vnet_name           = "vnet-${var.short}-${var.loc}-${var.env}-01"
-  vm_subnet_name      = "VMsubnet"
-  bastion_name        = "bst-${var.short}-${var.loc}-${var.env}-01"
-  bastion_subnet_name = "AzureBastionSubnet"
-  nsg_name            = "nsg-${var.short}-${var.loc}-${var.env}-01"
-  uid_name            = "uid-${var.short}-${var.loc}-${var.env}-01"
-  key_vault_name      = "kv-${var.short}-${var.loc}-${var.env}-01"
-  gallery_name        = "gal${var.short}${var.loc}${var.env}01"
-  windows_image_name  = "AzDoWindows2025"
-  ubuntu_image_name   = "AzdoUbuntu2404"
+  rg_name                    = "rg-${var.short}-${var.loc}-${var.env}-01"
+  vnet_name                  = "vnet-${var.short}-${var.loc}-${var.env}-01"
+  vm_subnet_name             = "VMsubnet"
+  bastion_name               = "bst-${var.short}-${var.loc}-${var.env}-01"
+  bastion_subnet_name        = "AzureBastionSubnet"
+  nsg_name                   = "nsg-${var.short}-${var.loc}-${var.env}-01"
+  uid_name                   = "uid-${var.short}-${var.loc}-${var.env}-01"
+  key_vault_name             = "kv-${var.short}-${var.loc}-${var.env}-01"
+  gallery_name               = "gal${var.short}${var.loc}${var.env}01"
+  windows_server_image_name  = "AzDoWindows2025"
+  ubuntu_image_name          = "AzDoUbuntu2404"
+  windows_desktop_image_name = "AzDoWindows11"
 }
 
 module "rg" {
@@ -207,7 +208,7 @@ module "images" {
   gallery_name = module.gallery.gallery_name[local.gallery_name]
   images = [
     {
-      name                                = local.windows_image_name
+      name                                = local.windows_server_image_name
       description                         = "Azure DevOps image based on Windows 2025"
       specialised                         = false
       hyper_v_generation                  = "V2"
@@ -221,7 +222,7 @@ module "images" {
       identifier = {
         offer     = "AzdoWindowsServer"
         publisher = "LibreDevOps"
-        sku       = local.windows_image_name
+        sku       = local.windows_server_image_name
       }
     },
     {
@@ -241,6 +242,24 @@ module "images" {
         publisher = "LibreDevOps"
         sku       = local.ubuntu_image_name
       }
-    }
+    },
+    {
+      name                                = local.windows_desktop_image_name
+      description                         = "Azure DevOps image based on Windows 11"
+      specialised                         = false
+      hyper_v_generation                  = "V2"
+      os_type                             = "Windows"
+      accelerated_network_support_enabled = true
+      max_recommended_vcpu                = 16
+      min_recommended_vcpu                = 2
+      max_recommended_memory_in_gb        = 32
+      min_recommended_memory_in_gb        = 8
+
+      identifier = {
+        offer     = "AzdoWindowsDesktop"
+        publisher = "LibreDevOps"
+        sku       = local.windows_desktop_image_name
+      }
+    },
   ]
 }

@@ -3,7 +3,8 @@
         {"name": "Pester"},
         {"name": "PowerShellGet"},
         {"name": "PSWindowsUpdate"},
-        {"name": "Microsoft.Graph"}
+        {"name": "Microsoft.Graph"},
+        {"name": "Az"}
     ],
     "choco": {
         "common_packages": [
@@ -13,7 +14,16 @@
             { "name": "microsoft-edge" },
             { "name": "powershell-core" },
             { "name": "openssl" },
-            { "name": "firefox" }
+            { "name": "firefox" },
+            { "name": "python3" },
+            { "name": "msys2" },
+            { "name": "sysinternals" },
+            { "name": "go" },
+            { "name": "tenv" },
+            { "name": "packer" },
+            { "name": "azure-cli"},
+            { "name": "databricks-cli" },
+            { "name": "trivy" }
         ]
     }
 }
