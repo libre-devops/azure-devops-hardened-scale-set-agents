@@ -51,24 +51,25 @@ variable "deploy_gui" {
 }
 
 locals {
-  deploy_gui            = var.deploy_gui
-  image_version         = formatdate("YYYYMM.DD.hhmmss", timestamp())
-  image_os              = "windows11"
-  short                 = "libd"
-  env                   = "dev"
-  loc                   = "uks"
-  location              = "uksouth"
-  rg_name               = "rg-${local.short}-${local.loc}-${local.env}-01"
-  gallery_name          = "gal${local.short}${local.loc}${local.env}01"
-  gallery_rg_name       = "rg-${local.short}-${local.loc}-${local.env}-01"
-  managed_identity_name = "uid-${local.short}-${local.loc}-${local.env}-01"
-  image_name            = "AzDoWindows11"
-  vnet_rg_name          = local.rg_name
-  vnet_name             = "vnet-${local.short}-${local.loc}-${local.env}-01"
-  subnet_name           = "VMSubnet"
-  use_public_ip         = true
-  key_vault_rg_name     = local.rg_name
-  key_vault_name        = "kv-${local.short}-${local.loc}-${local.env}-01"
+  deploy_gui                   = var.deploy_gui
+  image_version                = formatdate("YYYYMM.DD.hhmmss", timestamp())
+  image_os                     = "windows11"
+  short                        = "libd"
+  env                          = "dev"
+  loc                          = "uks"
+  location                     = "uksouth"
+  rg_name                      = "rg-${local.short}-${local.loc}-${local.env}-01"
+  gallery_name                 = "gal${local.short}${local.loc}${local.env}01"
+  gallery_rg_name              = "rg-${local.short}-${local.loc}-${local.env}-01"
+  managed_identity_name        = "uid-${local.short}-${local.loc}-${local.env}-01"
+  image_name                   = "AzDoWindows11"
+  vnet_rg_name                 = local.rg_name
+  vnet_name                    = "vnet-${local.short}-${local.loc}-${local.env}-01"
+  subnet_name                  = "VMSubnet"
+  use_public_ip                = true
+  key_vault_rg_name            = local.rg_name
+  key_vault_name               = "kv-${local.short}-${local.loc}-${local.env}-01"
+  hardening_kitty_files_to_run = "finding_list_cis_microsoft_windows_11_enterprise_23h2_machine.csv;finding_list_cis_microsoft_windows_11_enterprise_23h2_user.csv;finding_list_microsoft_windows_tls.csv;finding_list_msft_security_baseline_edge_128_machine.csv;finding_list_msft_security_baseline_windows_11_23h2_machine.csv;finding_list_msft_security_baseline_windows_11_23h2_user.csv"
 }
 
 ###### Packer Variables ######
@@ -103,7 +104,7 @@ variable "arm_tenant_id" {
 // Begins Packer build Section
 source "azure-arm" "build" {
 
-  client_id                 = var.arm_client_id
+  client_id = var.arm_client_id
   # client_jwt                = var.arm_oidc_token
   client_secret             = var.arm_client_secret
   subscription_id           = var.arm_subscription_id
@@ -254,21 +255,9 @@ build {
   }
 
   provisioner "powershell" {
-    inline = [
-      "Write-Output 'Checking if the CSV file exists at the expected path...'",
-      "if (Test-Path 'C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv') {",
-      "  Write-Output 'CSV file found: C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv'",
-      "} else {",
-      "  Write-Error 'CSV file not found: C:\\HardeningKitty\\lists\\finding_list_cis_microsoft_windows_server_2022_22h2_2.0.0_machine.csv'",
-      "  exit 1",
-      "}"
-    ]
-  }
-
-  provisioner "powershell" {
     environment_vars = [
       "HARDENING_KITTY_PATH=C:\\HardeningKitty",
-      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_11_enterprise_23h2_machine.csv;finding_list_cis_microsoft_windows_11_enterprise_23h2_user.csv;finding_list_microsoft_windows_tls.csv;finding_list_msft_security_baseline_edge_128_machine.csv;finding_list_msft_security_baseline_windows_11_23h2_machine.csv;finding_list_msft_security_baseline_windows_11_23h2_user.csv",
+      "HARDENING_KITTY_FILES_TO_RUN=${local.hardening_kitty_files_to_run}",
       "IMAGE_OS=${local.image_os}",
       "BUILD_WITH_GUI=${local.deploy_gui}"
     ]
@@ -304,7 +293,7 @@ build {
   provisioner "powershell" {
     environment_vars = [
       "HARDENING_KITTY_PATH=C:\\HardeningKitty",
-      "HARDENING_KITTY_FILES_TO_RUN=finding_list_cis_microsoft_windows_11_enterprise_23h2_machine.csv;finding_list_cis_microsoft_windows_11_enterprise_23h2_user.csv;finding_list_microsoft_windows_tls.csv;finding_list_msft_security_baseline_edge_128_machine.csv;finding_list_msft_security_baseline_windows_11_23h2_machine.csv;finding_list_msft_security_baseline_windows_11_23h2_user.csv",
+      "HARDENING_KITTY_FILES_TO_RUN=${local.hardening_kitty_files_to_run}",
       "IMAGE_OS=${local.image_os}",
       "BUILD_WITH_GUI=${local.deploy_gui}"
     ]
