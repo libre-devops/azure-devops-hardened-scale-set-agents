@@ -114,7 +114,7 @@ source "azure-arm" "build" {
   os_type                   = "Windows"
   image_publisher           = "MicrosoftWindowsDesktop"
   image_offer               = "Windows-11"
-  image_sku                 = local.deploy_gui == true ? "win11-23h2-ent" : "win11-23h2-ent"
+  image_sku                 = local.deploy_gui == true ? "win11-24h2-ent" : "win11-24h2-ent"
   vm_size                   = "Standard_D4ds_v5"
   communicator              = "winrm"
   winrm_insecure            = "true"
@@ -204,7 +204,7 @@ build {
     execution_policy = "unrestricted"
     scripts = [
       "${path.root}/scripts/Installers/Configure-Antivirus.ps1",
-      "${path.root}/scripts/Installers/Install-PowerShellModules.ps1",
+      # "${path.root}/scripts/Installers/Install-PowerShellModules.ps1",
       "${path.root}/scripts/Installers/Install-Choco.ps1",
       "${path.root}/scripts/Installers/Install-HardeningKitty.ps1",
       "${path.root}/scripts/Installers/Initialize-VM.ps1",
@@ -246,13 +246,13 @@ build {
     restart_timeout       = "30m"
   }
 
-  provisioner "powershell" {
-    pause_before = "2m0s"
-    scripts = [
-      "${path.root}/scripts/Installers/Wait-WindowsUpdatesForInstall.ps1",
-      "${path.root}/scripts/Tests/RunAll-Tests.ps1"
-    ]
-  }
+  # provisioner "powershell" {
+  #   pause_before = "2m0s"
+  #   scripts = [
+  #     "${path.root}/scripts/Installers/Wait-WindowsUpdatesForInstall.ps1",
+  #     "${path.root}/scripts/Tests/RunAll-Tests.ps1"
+  #   ]
+  # }
 
   provisioner "powershell" {
     environment_vars = [
