@@ -1,9 +1,9 @@
 # ============================================================================
-#  PACKER TEMPLATE – Ubuntu 24.04 Azure Image with CIS Hardening
+#  PACKER TEMPLATE – Ubuntu24.04 Azure Image with CIS Hardening
 #  All provisioner blocks now use a consistent, searchable header style.
 #  Each header follows the pattern:
 #  ########################################################################
-#  # <STAGE> – <Short description>
+#  # <STAGE> –<Short description>
 #  ########################################################################
 # ============================================================================
 
@@ -96,31 +96,31 @@ locals {
 
 variable "arm_client_id" {
   type        = string
-  description = "Azure AD Client ID"
+  description = "AzureAD Client ID"
   default     = "${env("PKR_VAR_ARM_CLIENT_ID")}"
 }
 
 variable "arm_client_secret" {
   type        = string
   sensitive   = true
-  description = "Azure AD Client secret"
+  description = "AzureAD Client secret"
   default     = "${env("PKR_VAR_ARM_CLIENT_SECRET")}"
 }
 
 variable "arm_subscription_id" {
   type        = string
-  description = "Azure subscription ID"
+  description = "Azuresubscription ID"
   default     = "${env("PKR_VAR_ARM_SUBSCRIPTION_ID")}"
 }
 
 variable "arm_tenant_id" {
   type        = string
-  description = "Azure AD Tenant ID"
+  description = "AzureAD Tenant ID"
   default     = "${env("ARM_TENANT_ID")}"
 }
 
 # ---------------------------------------------------------------------------
-#  IMAGE SOURCE (Azure Shared‑Image Gallery)
+#  IMAGE SOURCE (Azure Shared‑ImageGallery)
 # ---------------------------------------------------------------------------
 
 source "azure-arm" "build" {
@@ -130,7 +130,7 @@ source "azure-arm" "build" {
   tenant_id                 = var.arm_tenant_id
   build_resource_group_name = local.rg_name
   build_key_vault_name      = local.key_vault_name
-  # user_data_file            = "${path.root}/scripts/base/configure-legacy-ssh.sh" # work‑around packer #11656
+  # user_data_file            = "${path.root}/scripts/base/configure-legacy-ssh.sh" #work‑around packer#11656
 
   os_type                 = "Linux"
   image_publisher         = "Canonical"
@@ -162,7 +162,7 @@ build {
   sources = ["source.azure-arm.build"]
 
   ########################################################################
-  # PREP – Create work folder with open permissions
+  # PREP –Create work folder with open permissions
   ########################################################################
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -173,7 +173,7 @@ build {
   }
 
   ########################################################################
-  # PREP – Mock / lock APT to avoid race conditions (apt-mock.sh)
+  # PREP –Mock / lock APT to avoid race conditions (apt-mock.sh)
   ########################################################################
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -181,7 +181,7 @@ build {
   }
 
   ########################################################################
-  # PREP – Add external repositories
+  # PREP –Add external repositories
   ########################################################################
   provisioner "shell" {
     environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
@@ -190,7 +190,7 @@ build {
   }
 
   ########################################################################
-  # PREP – Baseline apt package updates & upgrades
+  # PREP –Baseline apt package updates & upgrades
   ########################################################################
   provisioner "shell" {
     environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
@@ -199,7 +199,7 @@ build {
   }
 
   ########################################################################
-  # PREP – Configure PAM limits
+  # PREP –Configure PAM limits
   ########################################################################
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -207,7 +207,7 @@ build {
   }
 
   ########################################################################
-  # COPY – Helper scripts to VM
+  # COPY –Helper scripts to VM
   ########################################################################
   provisioner "file" {
     destination = "${var.helper_script_folder}"
@@ -215,7 +215,7 @@ build {
   }
 
   ########################################################################
-  # COPY – Installers directory
+  # COPY –Installers directory
   ########################################################################
   provisioner "file" {
     destination = "${var.installer_script_folder}"
@@ -223,7 +223,7 @@ build {
   }
 
   ########################################################################
-  # COPY – Post generation scripts
+  # COPY –Post generation scripts
   ########################################################################
   provisioner "file" {
     destination = "${var.image_folder}"
@@ -231,7 +231,7 @@ build {
   }
 
   ########################################################################
-  # COPY – Test scripts
+  # COPY –Test scripts
   ########################################################################
   provisioner "file" {
     destination = "${var.image_folder}"
@@ -239,7 +239,7 @@ build {
   }
 
   ########################################################################
-  # COPY – Toolset definition JSON
+  # COPY –Toolset definition JSON
   ########################################################################
   provisioner "file" {
     destination = "${var.installer_script_folder}/toolset.json"
@@ -247,7 +247,7 @@ build {
   }
 
   ########################################################################
-  # CONFIG – Base environment variables inside image
+  # CONFIG –Base environment variables inside image
   ########################################################################
   provisioner "shell" {
     environment_vars = [
@@ -260,7 +260,7 @@ build {
   }
 
   ########################################################################
-  # CONFIG – Snap store + PowerShell Core
+  # CONFIG –Snap store + PowerShell Core
   ########################################################################
   provisioner "shell" {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
@@ -272,7 +272,7 @@ build {
   }
 
   ########################################################################
-  # CONFIG – Repeat Snap setup (idempotent safeguard)
+  # CONFIG –Repeat Snap setup (idempotent safeguard)
   ########################################################################
   provisioner "shell" {
     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
@@ -284,7 +284,7 @@ build {
   }
 
   ########################################################################
-  # APT – Ensure latest security updates via Ansible (ensure-update.yaml)
+  # APT –Ensure latest security updates via Ansible (ensure-update.yaml)
   ########################################################################
   provisioner "ansible" {
     playbook_file    = "${path.root}/ansible/installers/ensure-update.yaml"
@@ -294,7 +294,7 @@ build {
   }
 
   ########################################################################
-  # INSTALL – PowerShell modules for build agents
+  # INSTALL –PowerShell modules for build agents
   ########################################################################
   provisioner "shell" {
     environment_vars = [
@@ -306,7 +306,7 @@ build {
   }
 
   ########################################################################
-  # INSTALL – Core developer tools (basic.sh, containers.sh …)
+  # INSTALL –Core developer tools (basic.sh, containers.sh …)
   ########################################################################
   provisioner "shell" {
     environment_vars = [
@@ -325,7 +325,7 @@ build {
   }
 
   ########################################################################
-  # INSTALL – Homebrew on Linux
+  # INSTALL –Homebrew on Linux
   ########################################################################
   provisioner "shell" {
     environment_vars = [
@@ -338,7 +338,7 @@ build {
   }
 
   ########################################################################
-  # CONFIG – Restart snapd service after installations
+  # CONFIG –Restart snapd service after installations
   ########################################################################
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -346,7 +346,7 @@ build {
   }
 
   ########################################################################
-  # REBOOT – Clean VM state before continuing heavy installs
+  # REBOOT –Clean VM state before continuing heavy installs
   ########################################################################
   provisioner "shell" {
     execute_command   = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -355,7 +355,7 @@ build {
   }
 
   ########################################################################
-  # CLEAN – Remove caches & unwanted packages
+  # CLEAN –Remove caches & unwanted packages
   ########################################################################
   provisioner "shell" {
     execute_command     = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -365,7 +365,7 @@ build {
   }
 
   ########################################################################
-  # CLEAN – Remove APT mock once real installations are complete
+  # CLEAN –Remove APT mock once real installations are complete
   ########################################################################
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -373,7 +373,7 @@ build {
   }
 
   # ########################################################################
-  # # TEST – Run Pester tests against the configured image
+  # # TEST –Run Pester tests against the configured image
   # ########################################################################
   provisioner "shell" {
     environment_vars = [
@@ -386,8 +386,8 @@ build {
   }
 
   provisioner "ansible" {
-    playbook_file   = "${path.root}/ansible/cis-hardening/site.yml"
-    user            = "packer"
+    playbook_file = "${path.root}/ansible/cis-hardening/site.yml"
+    user          = "packer"
 
     extra_arguments = [
       "--become", "--become-user=root",
@@ -401,7 +401,7 @@ build {
   }
 
   ########################################################################
-  # REBOOT – Required after CIS removed NOPASSWD from sudoers
+  # REBOOT –Required after CIS removed NOPASSWD from sudoers
   ########################################################################
   provisioner "shell" {
     execute_command   = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -420,8 +420,9 @@ build {
   }
 
   ########################################################################
-  # POST‑DEPLOYMENT – Final configuration under strict sudo rules
+  # POST‑DEPLOYMENT –Final configuration under strict sudo rules
   ########################################################################
+
   provisioner "shell" {
     environment_vars = [
       "HELPER_SCRIPT_FOLDER=${var.helper_script_folder}",
@@ -432,8 +433,19 @@ build {
     scripts         = ["${path.root}/scripts/installers/post-deployment.sh"]
   }
 
+  provisioner "shell" {
+    environment_vars = [
+      "HELPER_SCRIPT_FOLDER=${var.helper_script_folder}",
+      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
+      "IMAGE_FOLDER=${var.image_folder}"
+    ]
+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    scripts         = ["${path.root}/scripts/installers/update-etc-sudoers.sh"]
+  }
+
+
   ########################################################################
-  # SYSPREP – Deprovision VM for Azure SIG publishing
+  # SYSPREP –Deprovision VM for Azure SIG publishing
   ########################################################################
   provisioner "shell" {
     environment_vars = [
@@ -441,8 +453,7 @@ build {
       "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
       "IMAGE_FOLDER=${var.image_folder}"
     ]
-    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
-    inline_shebang  = "/bin/sh -x"
-    inline          = ["sleep 30", "sudo /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    scripts         = ["${path.root}/scripts/installers/sysprep.sh"]
   }
 }
