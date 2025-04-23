@@ -101,7 +101,7 @@ module "nsg" {
 
   nsg_name              = local.nsg_name
   associate_with_subnet = true
-  subnet_id             = module.network.subnets_ids[local.vm_subnet_name]
+  subnet_ids            = { for k, v in module.network.subnets_ids : k => v if k != "AzureBastionSubnet" }
   custom_nsg_rules = {
     "AllowVnetInbound" = {
       priority                   = 100
