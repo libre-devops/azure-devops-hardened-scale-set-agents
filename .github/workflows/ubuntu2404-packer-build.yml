@@ -35,6 +35,8 @@ jobs:
             $workingDirectory = "${{ inputs.working_directory }}"
           }
           
+          Set-Location $workingDirectory
+          
           .\Run-Packer.ps1 `
             -WorkingDirectory $workingDirectory `
             -NsgId "/subscriptions/bf6128f4-93cb-45d4-bc13-7b3be2eea1c5/resourceGroups/rg-libd-uks-dev-01/providers/Microsoft.Network/networkSecurityGroups/nsg-libd-uks-dev-01"
