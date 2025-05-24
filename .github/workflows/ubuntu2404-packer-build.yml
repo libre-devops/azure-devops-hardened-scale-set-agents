@@ -1,4 +1,4 @@
-name: 'Run Packer Build - Ubuntu 24.04'
+name: 'Ubuntu 24.04 - Packer Build - Public Network SPN (Client Secret)'
 
 # Allow run manually
 on:
@@ -8,7 +8,7 @@ on:
       working_directory:
         type: string
         description: What working directory should be passed to the script
-        default: "github_workspace"
+        default: "packer/linux/ubuntu/2404"
 
 jobs:
   run-script:
@@ -39,7 +39,7 @@ jobs:
           Get-Location
           ls
           
-          .\Run-Packer.ps1 `
+          ./Run-AzPackerPublicNetworkSecret.ps1 `
             -WorkingDirectory $workingDirectory `
             -NsgId "/subscriptions/bf6128f4-93cb-45d4-bc13-7b3be2eea1c5/resourceGroups/rg-libd-uks-dev-01/providers/Microsoft.Network/networkSecurityGroups/nsg-libd-uks-dev-01"
 
