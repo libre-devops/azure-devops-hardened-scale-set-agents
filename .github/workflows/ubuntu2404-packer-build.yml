@@ -36,6 +36,8 @@ jobs:
           }
           
           Set-Location $workingDirectory
+          Get-Location
+          ls
           
           .\Run-Packer.ps1 `
             -WorkingDirectory $workingDirectory `
