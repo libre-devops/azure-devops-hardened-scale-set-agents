@@ -385,20 +385,20 @@ build {
     ]
   }
 
-  provisioner "ansible" {
-    playbook_file = "${path.root}/ansible/cis-hardening/site.yml"
-    user          = "packer"
-
-    extra_arguments = [
-      "--become", "--become-user=root",
-      # one JSON/YAML object guarantees proper types
-      "-e", "{ubtu24cis_rule_5_2_4: false, ubtu24cis_rule_5_4_2_4: false}"
-    ]
-
-    ansible_env_vars = [
-      "ANSIBLE_HOST_KEY_CHECKING=False"
-    ]
-  }
+  # provisioner "ansible" {
+  #   playbook_file = "${path.root}/ansible/cis-hardening/site.yml"
+  #   user          = "packer"
+  #
+  #   extra_arguments = [
+  #     "--become", "--become-user=root",
+  #     # one JSON/YAML object guarantees proper types
+  #     "-e", "{ubtu24cis_rule_5_2_4: false, ubtu24cis_rule_5_4_2_4: false}"
+  #   ]
+  #
+  #   ansible_env_vars = [
+  #     "ANSIBLE_HOST_KEY_CHECKING=False"
+  #   ]
+  # }
 
   ########################################################################
   # REBOOT –Required after CIS removed NOPASSWD from sudoers
@@ -409,15 +409,15 @@ build {
     inline            = ["echo 'Reboot VM'", "sudo reboot"]
   }
 
-  provisioner "shell" {
-    environment_vars = [
-      "HELPER_SCRIPT_FOLDER=${var.helper_script_folder}",
-      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
-      "IMAGE_FOLDER=${var.image_folder}"
-    ]
-    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts         = ["${path.root}/scripts/installers/configure-ufw.sh"]
-  }
+  # provisioner "shell" {
+  #   environment_vars = [
+  #     "HELPER_SCRIPT_FOLDER=${var.helper_script_folder}",
+  #     "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}",
+  #     "IMAGE_FOLDER=${var.image_folder}"
+  #   ]
+  #   execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+  #   scripts         = ["${path.root}/scripts/installers/configure-ufw.sh"]
+  # }
 
   ########################################################################
   # POST‑DEPLOYMENT –Final configuration under strict sudo rules

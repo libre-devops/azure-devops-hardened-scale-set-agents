@@ -1,0 +1,47 @@
+name: 'Run Packer Build - Ubuntu 24.04'
+
+# Allow run manually
+on:
+  # This will run at 00:00 on the 1st of every month
+  workflow_dispatch:
+    inputs:
+      working_directory:
+        type: string
+        description: What working directory should be passed to the script
+        default: "github_workspace"
+
+jobs:
+  run-script:
+    name: 'Run Script'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build
+        id: run-script
+        shell: pwsh
+        run: |
+          if ("${{ inputs.working_directory }}" -eq "github_workspace") 
+          {
+            $workingDirectory = "${{ github.workspace }}"
+          }
+          else
+          {
+            $workingDirectory = "${{ inputs.working_directory }}"
+          }
+          
+          .\Run-Packer.ps1 `
+            -WorkingDirectory $workingDirectory `
+            -NsgId "/subscriptions/bf6128f4-93cb-45d4-bc13-7b3be2eea1c5/resourceGroups/rg-libd-uks-dev-01/providers/Microsoft.Network/networkSecurityGroups/nsg-libd-uks-dev-01"
+
+        env:
+          PKR_VAR_ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          PKR_VAR_ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          PKR_VAR_ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          PKR_VAR_ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          PKR_VAR_ARM_USE_AZUREAD: ${{ secrets.ARM_USE_AZUREAD }}
